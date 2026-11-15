@@ -41,11 +41,18 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
     name: 'plan_routes',
     description:
       'Plans 3 routes (safest, balanced, fastest) from the astronaut position to a destination and draws them on the map. ' +
-      'Use a place name (e.g. "delta", "base", "Seitah", "Belva", "Three Forks") or lat/lng.',
+      'Use a place name (e.g. "delta", "base", "Seitah", "Belva", "Three Forks") or lat/lng. ' +
+      'For HYPOTHETICAL questions ("is it safe at night?", "what if I go at night?") pass what_if_time_of_day: ' +
+      'the routes are evaluated for that time but the map is NOT changed.',
     parametersJsonSchema: obj({
       destination: { type: 'string', description: 'Place name (e.g. "delta", "base").' },
       lat: { type: 'number' },
       lng: { type: 'number' },
+      what_if_time_of_day: {
+        type: 'string',
+        enum: ['day', 'night'],
+        description: 'Only for hypothetical questions: evaluate without drawing routes or switching the map.',
+      },
     }),
   },
   {
@@ -60,8 +67,13 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
   },
   {
     name: 'explain_alerts',
-    description: 'Lists the alerts on a route (default: active route) with what to do for each.',
-    parametersJsonSchema: obj({ route_id: { type: 'string' } }),
+    description:
+      'Lists the alerts on a route (default: active route) with what to do for each. ' +
+      'what_if_time_of_day re-evaluates the alerts for that time without switching the map.',
+    parametersJsonSchema: obj({
+      route_id: { type: 'string' },
+      what_if_time_of_day: { type: 'string', enum: ['day', 'night'] },
+    }),
   },
   {
     name: 'start_rescue',
@@ -75,7 +87,9 @@ export const TOOL_DECLARATIONS: FunctionDeclaration[] = [
   },
   {
     name: 'set_time_of_day',
-    description: 'Switches the map to day or night (changes temperatures and alerts).',
+    description:
+      'Switches the whole map to day or night (changes temperatures and alerts). ONLY when the user explicitly asks to ' +
+      'switch/show day or night. Never for hypothetical questions: use what_if_time_of_day on plan_routes/explain_alerts.',
     parametersJsonSchema: obj({ time: { type: 'string', enum: ['day', 'night'] } }, ['time']),
   },
   {
@@ -368,6 +382,13 @@ export function cameraLabel(camera: string, lang: Lang): string {
   return camera.replace(/\bfrontal\b/i, 'front').replace(/\btraseira\b/i, 'rear');
 }
 
+/** Hora hipotética pedida (só se for diferente da atual; igual = pergunta normal). */
+function whatIfTime(v: unknown, current: TimeOfDay): TimeOfDay | null {
+  const t = normalize(String(v ?? ''));
+  const tod: TimeOfDay | null = t === 'night' || t === 'noite' ? 'night' : t === 'day' || t === 'dia' ? 'day' : null;
+  return tod && tod !== current ? tod : null;
+}
+
 // ---------------------------------------------------------------- executores
 
 type Executor = (args: Record<string, unknown>, ctx: ToolContext) => ToolResult;
@@ -385,10 +406,25 @@ const executors: Record<ToolName, Executor> = {
         actions: [],
       };
     }
-    const routes = core.planRoutes(snapshot.position, to, data, snapshot.suit, snapshot.timeOfDay, opts(ctx));
+    const whatIf = whatIfTime(args.what_if_time_of_day, snapshot.timeOfDay);
+    const routes = core.planRoutes(snapshot.position, to, data, snapshot.suit, whatIf ?? snapshot.timeOfDay, opts(ctx));
     const dest = placeName(to, langOf(snapshot));
     if (!routes.length) return { summary: { error: 'no_route_found', destination: dest }, actions: [] };
     const best = recommendRoute(routes, snapshot) ?? routes[0];
+    if (whatIf) {
+      // Hipótese: só avalia. Não desenha rotas nem troca o mapa (o astronauta continua vendo o estado real).
+      return {
+        summary: {
+          hypothetical: true,
+          evaluatedFor: whatIf,
+          mapUnchanged: true,
+          destination: dest,
+          recommendedLabel: best.label,
+          routes: routes.map(routeSummary),
+        },
+        actions: [],
+      };
+    }
     ctx.snapshot = { ...snapshot, routes, activeRouteId: best.id };
     return {
       summary: {
@@ -426,14 +462,24 @@ const executors: Record<ToolName, Executor> = {
     const route = findRoute(snapshot, args.route_id);
     if (!route) {
       const back = core.computeRescue(snapshot.position, snapshot.progressIdx, null, data, snapshot.suit, snapshot.timeOfDay, opts(ctx));
+      // Sem rota: a pergunta útil é "quanto tempo de caminhada eu tenho", não "quanto custa voltar".
+      const still = core.routeFromPolyline([snapshot.position, snapshot.position], data, snapshot.suit, snapshot.timeOfDay, opts(ctx));
+      const m = core.oxygenMargin(still, snapshot.suit);
+      const atShelter = core.distanceM(snapshot.position, back.shelter) < 150;
       return {
         summary: {
           route: null,
+          atShelter,
           o2AvailablePct: Math.round(snapshot.suit.o2Pct),
+          /** Tempo de caminhada que o O₂ atual permite acima da reserva (min). */
+          walkingAutonomyMin: Math.round(m.autonomyMin),
           returnToShelter: back.shelter.name,
           o2NeededToReturnPct: Math.round(back.o2NeededPct),
           returnEtaMin: Math.round(back.etaMin),
           ok: back.ok,
+          hint: atShelter
+            ? 'The astronaut is at the shelter: no return cost. Report O2 available and walking autonomy; suggest planning a route to get a round-trip margin.'
+            : 'No route yet: report O2 available, the cost of going back to the shelter now and walking autonomy.',
         },
         actions: [],
       };
@@ -460,7 +506,10 @@ const executors: Record<ToolName, Executor> = {
     const { snapshot, data } = ctx;
     const route = findRoute(snapshot, args.route_id);
     if (!route) return { summary: { error: 'no_route' }, actions: [] };
-    const alerts = route.alerts.length ? route.alerts : core.evaluateRoute(route, data, snapshot.suit, snapshot.timeOfDay, opts(ctx));
+    const whatIf = whatIfTime(args.what_if_time_of_day, snapshot.timeOfDay);
+    const alerts = whatIf
+      ? core.evaluateRoute(route, data, snapshot.suit, whatIf, opts(ctx))
+      : route.alerts.length ? route.alerts : core.evaluateRoute(route, data, snapshot.suit, snapshot.timeOfDay, opts(ctx));
     const sorted = [...alerts].sort((a, b) => (a.severity === b.severity ? a.fromIdx - b.fromIdx : a.severity === 'critical' ? -1 : 1));
     const first = sorted[0];
     return {
@@ -468,6 +517,7 @@ const executors: Record<ToolName, Executor> = {
         routeId: route.id,
         routeLabel: route.label,
         routeProfile: route.profile,
+        ...(whatIf ? { hypothetical: true, evaluatedFor: whatIf, mapUnchanged: true } : {}),
         count: alerts.length,
         alerts: sorted.slice(0, 5).map((a) => ({
           kind: a.kind,
@@ -478,7 +528,7 @@ const executors: Record<ToolName, Executor> = {
           atKm: r1((route.points[a.fromIdx]?.distM ?? 0) / 1000),
         })),
       },
-      actions: first ? [{ type: 'focusMap', at: first.at }] : [],
+      actions: first && !whatIf ? [{ type: 'focusMap', at: first.at }] : [],
     };
   },
 

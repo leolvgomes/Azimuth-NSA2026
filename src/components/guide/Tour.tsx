@@ -6,7 +6,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
 import { tourCopy } from '@/config/about';
 import { useAzimuth } from '@/state/store';
-import { useGuide } from '@/state/guide';
+import { markTourSeen, tourSeen, useGuide } from '@/state/guide';
+import { useLayout } from '@/state/layout';
 import { useT } from '@/lib/useT';
 import { TOUR_STEPS, type TourStep } from './tourSteps';
 
@@ -103,6 +104,11 @@ function StepCard({ index }: { index: number }) {
     return () => cancelAnimationFrame(raf);
   }, [step]);
 
+  // abre o painel onde o alvo mora (coluna recolhida no desktop / gaveta no celular)
+  useEffect(() => {
+    useLayout.getState().reveal(step.panel ?? null);
+  }, [step]);
+
   // conclusão: observa o store. Já satisfeito ao abrir (ex.: voltou um passo) = marca feito sem pular.
   useEffect(() => {
     if (!step.done) return;
@@ -196,7 +202,7 @@ function StepCard({ index }: { index: number }) {
 
         <div className="flex items-center gap-2" style={{ marginTop: 16 }}>
           {!first ? (
-            <button type="button" className="mini" onClick={prev} aria-label="Back" style={{ paddingInline: 16 }}>
+            <button type="button" className="mini" onClick={prev} aria-label={copy.backAria} style={{ paddingInline: 16 }}>
               {copy.back}
             </button>
           ) : null}
@@ -234,6 +240,57 @@ function StepCard({ index }: { index: number }) {
         </div>
       </div>
     </>
+  );
+}
+
+/** Convite discreto na primeira visita ao mapa: "Primeira vez? Faça o tour". Aparece uma vez por navegador. */
+export function TourInvite() {
+  const { lang } = useT();
+  const c = tourCopy[lang];
+  const tourStep = useGuide((s) => s.tourStep);
+  const aboutOpen = useGuide((s) => s.aboutOpen);
+  const startTour = useGuide((s) => s.startTour);
+  const dataReady = useAzimuth((s) => s.dataReady);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    if (!dataReady || tourSeen()) return;
+    const id = setTimeout(() => setShow(true), 1200);
+    return () => clearTimeout(id);
+  }, [dataReady]);
+
+  if (!show || tourStep != null || aboutOpen) return null;
+  const close = () => {
+    markTourSeen();
+    setShow(false);
+  };
+  return (
+    <div className="tour-invite" role="dialog" aria-label={c.inviteTitle}>
+      <div className="flex items-center gap-3">
+        <span className="ab-dot" aria-hidden />
+        <span className="label" style={{ color: 'var(--accent)' }}>
+          {c.inviteTitle}
+        </span>
+      </div>
+      <p className="tour-body" style={{ marginTop: 8 }}>
+        {c.inviteBody}
+      </p>
+      <div className="flex gap-2" style={{ marginTop: 12 }}>
+        <button
+          type="button"
+          className="mini f"
+          onClick={() => {
+            setShow(false);
+            startTour();
+          }}
+        >
+          {c.inviteStart}
+        </button>
+        <button type="button" className="mini tour-skip" onClick={close}>
+          {c.inviteLater}
+        </button>
+      </div>
+    </div>
   );
 }
 

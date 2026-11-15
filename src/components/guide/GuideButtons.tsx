@@ -11,11 +11,11 @@ export function GuideButtons() {
   const startTour = useGuide((s) => s.startTour);
   return (
     <div className="flex gap-2">
-      <button type="button" className="mini guide-btn" onClick={() => openAbout(0)}>
-        ⓘ {c.open}
+      <button type="button" className="mini guide-btn" onClick={() => openAbout(0)} aria-label={c.open}>
+        ⓘ <span className="gb-lbl">{c.open}</span>
       </button>
-      <button type="button" className="mini guide-btn" onClick={startTour}>
-        ▶ {c.tutorial}
+      <button type="button" className="mini guide-btn" onClick={startTour} aria-label={c.tutorial}>
+        ▶ <span className="gb-lbl">{c.tutorial}</span>
       </button>
     </div>
   );
@@ -32,7 +32,7 @@ export function HelpButton() {
       <button type="button" className="btn icon" onClick={() => openAbout(0)} aria-label={c.open} title={c.open}>
         ?
       </button>
-      <button type="button" className="btn" style={{ padding: '0 14px', fontSize: 11, marginLeft: -1 }} onClick={startTour} title={c.tutorial}>
+      <button type="button" className="btn tb-tour" style={{ padding: '0 14px', fontSize: 11, marginLeft: -1 }} onClick={startTour} title={c.tutorial}>
         ▶ {c.tutorial}
       </button>
     </div>

@@ -17,6 +17,8 @@ export type Placement = 'auto' | 'center' | 'bottom';
 export interface TourStep {
   id: string;
   target?: string;
+  /** Painel onde o alvo mora: o tutorial o abre (coluna no desktop, gaveta no celular). */
+  panel?: 'left' | 'right';
   placement?: Placement;
   /** Escurece o resto da tela (padrão: true quando há target). */
   dim?: boolean;
@@ -43,6 +45,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'layers',
     target: 'layer-thermal',
+    panel: 'left',
     done: (s) => s.layers.thermal,
     assist: () => {
       if (!app().layers.thermal) app().toggleLayer('thermal');
@@ -51,6 +54,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'night',
     target: 'day-night',
+    panel: 'left',
     done: (s) => s.timeOfDay === 'night',
     assist: () => app().setTimeOfDay('night'),
   },
@@ -67,6 +71,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'options',
     target: 'route-options',
+    panel: 'right',
     done: (s, snap) => !!s.activeRouteId && s.activeRouteId !== snap.activeRouteId,
     assist: () => {
       const before = app().activeRouteId;
@@ -77,7 +82,7 @@ export const TOUR_STEPS: TourStep[] = [
     },
   },
   { id: 'alerts', target: 'alerts' },
-  { id: 'dossier', target: 'route-panel' },
+  { id: 'dossier', target: 'route-panel', panel: 'right' },
   {
     id: 'suit',
     target: 'suit-o2',
@@ -90,6 +95,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'walk',
     target: 'walk-btn',
+    panel: 'right',
     done: (s) => s.mode === 'walk',
     assist: () => {
       ensureRoute();
@@ -99,6 +105,7 @@ export const TOUR_STEPS: TourStep[] = [
   {
     id: 'clock',
     target: 'walk-controls',
+    panel: 'left',
     done: (s) => s.sim.running || s.sim.elapsedMin > 0,
     assist: () => {
       const s = app();
@@ -113,7 +120,7 @@ export const TOUR_STEPS: TourStep[] = [
     done: (s) => s.mode === 'rescue',
     assist: () => app().enterRescue(),
   },
-  { id: 'home', target: 'rescue-panel' },
-  { id: 'robots', target: 'robots' },
+  { id: 'home', target: 'rescue-panel', panel: 'left' },
+  { id: 'robots', target: 'robots', panel: 'right' },
   { id: 'done', placement: 'center' },
 ];

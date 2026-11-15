@@ -13,7 +13,7 @@ export function PhotoFrame({ photo, height, caption, tag, className = '', onClic
   className?: string;
   onClick?: () => void;
 }) {
-  const { lang } = useT();
+  const { lang, t } = useT();
   const cap = caption ?? (photo ? `${photo.camera} · SOL ${photo.sol}` : lang === 'en' ? 'NO NEARBY PHOTO' : 'SEM FOTO PRÓXIMA');
   const inner = (
     <>
@@ -24,7 +24,7 @@ export function PhotoFrame({ photo, height, caption, tag, className = '', onClic
   );
   if (onClick)
     return (
-      <button type="button" className={`photo block w-full p-0 border-0 ${className}`} style={{ height }} onClick={onClick} aria-label="Ampliar foto do rover">
+      <button type="button" className={`photo block w-full p-0 border-0 ${className}`} style={{ height }} onClick={onClick} aria-label={t('enlargePhoto')}>
         {inner}
       </button>
     );

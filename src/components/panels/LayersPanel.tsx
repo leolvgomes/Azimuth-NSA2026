@@ -43,7 +43,7 @@ export function LayersPanel() {
           ) : null}
         </div>
       ))}
-      <div className="legend" aria-label="Legend">
+      <div className="legend" aria-label={t('legend')}>
         <div className="ln" style={{ borderTopStyle: 'solid', borderTopWidth: 3, borderColor: 'var(--accent)' }} />
         <span className="src">{t('lgActive')}</span>
         <div className="ln" style={{ borderTopStyle: 'dotted', borderColor: 'var(--text)' }} />

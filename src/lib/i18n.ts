@@ -237,6 +237,31 @@ const en = {
   pointPhoto: 'Point {n}: see nearest photo',
   photoOf: 'Photo',
   sol: 'sol',
+  // sugestões rápidas para a Azimuth (separadas por |)
+  chipsPlan: 'Take me to the delta|How much O₂ margin do I have?|Compare the routes|Science stops on the way',
+  chipsWalk: 'What’s ahead?|Show me the nearest photo|How much O₂ margin do I have?|Call the scout',
+  chipsRescue: 'How do I get back?|Call the rescue robot|How much O₂ do I need?',
+  quickAsk: 'Quick questions',
+  // o que a Azimuth está fazendo enquanto responde
+  thinkRoute: 'Tracing routes on the cost map…',
+  thinkO2: 'Computing your oxygen margin…',
+  thinkRescue: 'Computing the way home…',
+  thinkRover: 'Checking the support robots…',
+  thinkPhoto: 'Looking for the nearest rover photo…',
+  thinkScience: 'Checking science targets along the route…',
+  thinkAlerts: 'Reading the alerts on the route…',
+  // acessibilidade
+  enlargePhoto: 'Enlarge rover photo',
+  legend: 'Legend',
+  // painéis (telas menores)
+  pnLayers: 'LAYERS',
+  pnRoute: 'ROUTE',
+  pnAhead: 'AHEAD',
+  pnRover: 'ROVER VIEW',
+  pnReturn: 'WAY BACK',
+  pnRobots: 'ROBOTS',
+  hidePanel: 'Hide panel',
+  showPanel: 'Show panel',
 } as const;
 
 export type I18nKey = keyof typeof en;
@@ -462,6 +487,27 @@ const pt: Record<I18nKey, string> = {
   pointPhoto: 'Ponto {n}: ver foto mais próxima',
   photoOf: 'Foto',
   sol: 'sol',
+  chipsPlan: 'Me leve até o delta|Quanto O₂ tenho de margem?|Compare as rotas|Paradas científicas no caminho',
+  chipsWalk: 'O que vem pela frente?|Mostre a foto mais próxima|Quanto O₂ tenho de margem?|Chame o batedor',
+  chipsRescue: 'Como eu volto?|Chame o robô de resgate|Quanto O₂ eu preciso?',
+  quickAsk: 'Perguntas rápidas',
+  thinkRoute: 'Traçando rotas no mapa de custo…',
+  thinkO2: 'Calculando sua margem de oxigênio…',
+  thinkRescue: 'Calculando o caminho de volta…',
+  thinkRover: 'Consultando os robôs de apoio…',
+  thinkPhoto: 'Procurando a foto de rover mais próxima…',
+  thinkScience: 'Verificando alvos científicos na rota…',
+  thinkAlerts: 'Lendo os alertas da rota…',
+  enlargePhoto: 'Ampliar foto do rover',
+  legend: 'Legenda',
+  pnLayers: 'CAMADAS',
+  pnRoute: 'ROTA',
+  pnAhead: 'À FRENTE',
+  pnRover: 'VISÃO DO ROVER',
+  pnReturn: 'VOLTA',
+  pnRobots: 'ROBÔS',
+  hidePanel: 'Esconder painel',
+  showPanel: 'Mostrar painel',
 };
 
 const DICT: Record<Lang, Record<I18nKey, string>> = { en, pt };

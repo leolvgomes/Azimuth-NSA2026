@@ -4,7 +4,7 @@ NASA Space Apps 2026, desafio **Interplanetary Survival Guide: Martian Map**. Si
 em camadas da Cratera Jezero que mostra ao astronauta a rota mais segura e sempre o caminho de volta.
 Tagline: "Know the way home." Prazo: domingo 15/11/2026 à noite.
 
-Time: Leonardo (código), Clara Almeida (design, briefing, vídeo), Paiva (a definir).
+Time: Leonardo Gomes (líder, código), João Pedro (código), Maria Clara (design, briefing, vídeo).
 
 ## Regras do repositório
 - **Nunca commitar nem dar push.** O Leonardo revisa o código antes de qualquer commit.
@@ -24,6 +24,8 @@ Time: Leonardo (código), Clara Almeida (design, briefing, vídeo), Paiva (a def
 - O Leonardo roda `next dev` na porta 3000 pelo VS Code: **nunca** derrubar esse processo nem rodar
   `next build` na pasta `.next`. Para build de verificação: `NEXT_DIST_DIR=.next-verify npx next build`.
 - Para a Vercel: a chave vai em Settings → Environment Variables (`GEMINI_API_KEY`).
+- Layout responsivo: `src/state/layout.ts` (colunas recolhíveis ≥ 900 px, gaveta no celular < 900 px).
+  A rota `/api/azimuth` tem limite por IP (`src/ai/rateLimit.ts`); quem passa do limite cai no plano B.
 
 ## Stack
 Next.js 15 (App Router, `src/`), React 19, TypeScript, Tailwind 4, Leaflet/react-leaflet (mapa 2D,

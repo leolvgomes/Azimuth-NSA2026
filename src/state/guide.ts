@@ -41,6 +41,25 @@ function resetAppForTour() {
   a.setSuit({ ...initialSuitState });
 }
 
+const SEEN_KEY = 'azimuth.tourSeen';
+
+/** Já viu (ou recusou) o tutorial neste navegador? Sem localStorage = trata como visto (não insiste). */
+export function tourSeen(): boolean {
+  try {
+    return window.localStorage.getItem(SEEN_KEY) === '1';
+  } catch {
+    return true;
+  }
+}
+
+export function markTourSeen() {
+  try {
+    window.localStorage.setItem(SEEN_KEY, '1');
+  } catch {
+    /* sem localStorage: nada a fazer */
+  }
+}
+
 export const useGuide = create<GuideState>()((set, get) => ({
   aboutOpen: false,
   aboutSection: 0,
@@ -56,6 +75,7 @@ export const useGuide = create<GuideState>()((set, get) => ({
     set({ aboutSection: i });
   },
   startTour() {
+    markTourSeen();
     resetAppForTour();
     set({ aboutOpen: false, tourStep: 0 });
   },

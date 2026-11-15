@@ -328,6 +328,7 @@ export interface TourCopy {
   done: string;
   next: string;
   back: string;
+  backAria: string;
   skip: string;
   exit: string;
   start: string;
@@ -335,6 +336,10 @@ export interface TourCopy {
   openAbout: string;
   /** Frase enviada à Azimuth no passo "pergunte". */
   askPhrase: string;
+  inviteTitle: string;
+  inviteBody: string;
+  inviteStart: string;
+  inviteLater: string;
   steps: Record<string, TourStepCopy>;
 }
 
@@ -347,12 +352,17 @@ export const tourCopy: L<TourCopy> = {
     done: 'Done!',
     next: 'NEXT ▸',
     back: '◂',
+    backAria: 'Previous step',
     skip: 'SKIP STEP',
     exit: 'Exit tutorial',
     start: 'START ▸',
     finish: 'FINISH',
     openAbout: 'ABOUT AZIMUTH',
     askPhrase: 'take me to the delta',
+    inviteTitle: 'FIRST TIME HERE?',
+    inviteBody: 'Take the 2-minute interactive tour: you plan, check and walk a real route on Mars, step by step.',
+    inviteStart: 'START THE TOUR ▸',
+    inviteLater: 'NOT NOW',
     steps: {
       welcome: {
         title: 'Welcome aboard',
@@ -441,12 +451,17 @@ export const tourCopy: L<TourCopy> = {
     done: 'Feito!',
     next: 'PRÓXIMO ▸',
     back: '◂',
+    backAria: 'Passo anterior',
     skip: 'PULAR PASSO',
     exit: 'Sair do tutorial',
     start: 'COMEÇAR ▸',
     finish: 'CONCLUIR',
     openAbout: 'SOBRE A AZIMUTH',
     askPhrase: 'me leve até o delta',
+    inviteTitle: 'PRIMEIRA VEZ AQUI?',
+    inviteBody: 'Faça o tour interativo de 2 minutos: você planeja, confere e percorre uma rota real em Marte, passo a passo.',
+    inviteStart: 'FAZER O TOUR ▸',
+    inviteLater: 'AGORA NÃO',
     steps: {
       welcome: {
         title: 'Bem-vindo a bordo',

@@ -6,6 +6,7 @@ import { askAzimuth } from '@/lib/azimuthClient';
 import { upper } from '@/lib/format';
 import { useT } from '@/lib/useT';
 import { robotLabel } from './robots';
+import { thinkingKey } from '@/lib/thinking';
 
 /** Cartão curto de resposta sobre o mapa, com botões de ação. Nunca tela cheia. */
 export function ReplyCard() {
@@ -23,6 +24,7 @@ export function ReplyCard() {
   const enterRescue = useAzimuth((s) => s.enterRescue);
   const ackPnr = useAzimuth((s) => s.ackPnr);
   const routes = useAzimuth((s) => s.routes);
+  const lastQuestion = useAzimuth((s) => [...s.chat.messages].reverse().find((m) => m.role === 'user')?.text);
 
   if (!card && !pending && !loading) return null;
 
@@ -53,7 +55,20 @@ export function ReplyCard() {
           </button>
         ) : null}
       </div>
-      <div className="txt">{loading && !card ? t('computing') : card?.text ?? pending?.reason}</div>
+      <div className="txt">
+        {loading && !card ? (
+          <span className="flex items-center gap-3">
+            <span className="tour-dots" aria-hidden>
+              <i />
+              <i />
+              <i />
+            </span>
+            {t(thinkingKey(lastQuestion))}
+          </span>
+        ) : (
+          card?.text ?? pending?.reason
+        )}
+      </div>
 
       {pending ? (
         <div style={{ marginTop: 12 }}>

@@ -122,10 +122,10 @@ export function SuitStrip() {
           {route ? <Stat label={t('pnrUp')} value={pnr ? `km ${(pnr.distM / 1000).toFixed(1)}` : '—'} tone="a" /> : null}
         </>
       )}
-      <div className="flex-1" />
-      <div className="text-right shrink-0">
+      <div className="flex-1 suit-fill" />
+      <div className="text-right shrink-0 suit-tag">
         <SampleTag />
-        <div className="src" style={{ marginTop: 8 }}>
+        <div className="src suit-hint" style={{ marginTop: 8 }}>
           {t('dragHint')}
         </div>
       </div>

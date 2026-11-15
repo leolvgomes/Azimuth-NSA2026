@@ -6,7 +6,7 @@
 import type { Lang } from '@/config/i18n';
 import type { MapData } from '@/core/types';
 import type { AzimuthAction, AzimuthRequest, AzimuthResponse } from './contract';
-import { langOf, matchScienceTarget, normalize, resolvePlace, runTool, type RoverRole, type ToolContext } from './tools';
+import { findRoute, langOf, matchScienceTarget, normalize, resolvePlace, runTool, type RoverRole, type ToolContext } from './tools';
 
 type Intent =
   | 'photo' | 'rover' | 'science' | 'addScience' | 'rescue' | 'oxygen' | 'alerts' | 'compare' | 'time' | 'navigate' | 'focus' | 'help';
@@ -229,6 +229,11 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
     case 'oxygen': {
       const s = run('oxygen_margin');
       if (s.route === null) {
+        if (s.atShelter) {
+          return out(L(lang,
+            `Você está na base com ${s.o2AvailablePct}% de O₂, o bastante para cerca de ${fmtMin(s.walkingAutonomyMin)} de caminhada acima da reserva. Trace uma rota e eu calculo a margem de ida e volta.`,
+            `You're at the base with ${s.o2AvailablePct}% O₂, enough for about ${fmtMin(s.walkingAutonomyMin)} of walking above the reserve. Plan a route and I'll compute the round-trip margin.`));
+        }
         return out(s.ok
           ? L(lang,
             `Você tem ${s.o2AvailablePct}% de O₂; voltar agora até ${s.returnToShelter} leva ${fmtMin(s.returnEtaMin)} e pede ${s.o2NeededToReturnPct}% com margem. Está tranquilo.`,
@@ -300,7 +305,17 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
 
     case 'time': {
       const night = /\b(noite|night|anoitecer|escuro|dark)\b/.test(t);
-      run('set_time_of_day', { time: night ? 'night' : 'day' });
+      const tod = night ? 'night' : 'day';
+      // Pergunta hipotética ("e se for à noite?"): avalia a rota sem trocar o mapa.
+      const hypothetical = /\b(e se|what if|seria|would|could|posso|can i|is it|da para|vale)\b/.test(t) || /\?\s*$/.test(last.trim());
+      if (hypothetical && tod !== req.snapshot.timeOfDay && findRoute(req.snapshot)) {
+        const s = run('explain_alerts', { what_if_time_of_day: tod });
+        const crit = (s.alerts ?? []).filter((a: { severity: string }) => a.severity === 'critical').length;
+        return out(L(lang,
+          `${night ? 'À noite' : 'De dia'}, a rota ${s.routeLabel} teria ${alertsTxt(s.count, lang)}${crit ? `, ${critTxt(crit, lang)}` : ''}. O mapa continua como está; peça "mude para ${night ? 'noite' : 'dia'}" para ver.`,
+          `${night ? 'At night' : 'By day'}, the ${s.routeLabel} route would have ${alertsTxt(s.count, lang)}${crit ? `, ${critTxt(crit, lang)}` : ''}. The map stays as it is; say "switch to ${tod}" to see it.`));
+      }
+      run('set_time_of_day', { time: tod });
       return out(night
         ? L(lang, 'Mudei para a noite: a superfície esfria muito e os alertas de frio aparecem no mapa.', 'Switched to night: the surface gets much colder and cold alerts show on the map.')
         : L(lang, 'Mudei para o dia: temperaturas de superfície diurnas no mapa.', 'Switched to day: daytime surface temperatures on the map.'));
