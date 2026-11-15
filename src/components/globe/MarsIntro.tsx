@@ -237,11 +237,11 @@ export default function MarsIntro({ onEnter, lang = DEFAULT_LANG }: MarsIntroPro
 
   const onReady = useCallback(() => setReady(true), []);
   const hudHidden = flying || leaving;
-  const hudFade: CSSProperties = {
-    opacity: hudHidden ? 0 : 1,
-    transition: 'opacity 450ms ease',
-    pointerEvents: hudHidden ? 'none' : undefined,
-  };
+  // Only set pointerEvents while hidden: a `pointerEvents: undefined` key would override the
+  // `pointerEvents: 'none'` of the full-screen overlays it is spread into and block dragging the globe.
+  const hudFade: CSSProperties = hudHidden
+    ? { opacity: 0, transition: 'opacity 450ms ease', pointerEvents: 'none' }
+    : { opacity: 1, transition: 'opacity 450ms ease' };
 
   const fallback = <FallbackPlanet />;
 
@@ -280,7 +280,6 @@ export default function MarsIntro({ onEnter, lang = DEFAULT_LANG }: MarsIntroPro
                   reducedMotion={reducedMotion}
                   labelRef={labelRef}
                   fadeRef={fadeRef}
-                  onPlanetClick={start}
                   onFlightEnd={finish}
                   onReady={onReady}
                 />
@@ -392,9 +391,21 @@ export default function MarsIntro({ onEnter, lang = DEFAULT_LANG }: MarsIntroPro
           bottom: 'clamp(112px, 18vh, 170px)',
           zIndex: 4,
           ...hudFade,
+          // only the buttons catch the pointer: the rest of this strip lets you drag the globe
+          pointerEvents: 'none',
         }}
       >
-        <div style={{ display: 'flex', justifyContent: 'center', gap: 16, animation: 'azi-in 900ms 200ms ease both' }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'center',
+            gap: 16,
+            animation: 'azi-in 900ms 200ms ease both',
+            width: 'fit-content',
+            margin: '0 auto',
+            pointerEvents: hudHidden ? 'none' : 'auto',
+          }}
+        >
         <button type="button" className="azi-btn-primary" onClick={start} autoFocus>
           {copy.enter} ▸
         </button>
