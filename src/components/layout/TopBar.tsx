@@ -7,6 +7,7 @@ import { useT } from '@/lib/useT';
 import type { I18nKey } from '@/lib/i18n';
 import { Logo } from '@/components/ui/Logo';
 import { LangSwitch } from '@/components/ui/LangSwitch';
+import { HelpButton } from '@/components/guide/GuideButtons';
 
 const TABS: { mode: Exclude<Mode, 'intro'>; key: I18nKey }[] = [
   { mode: 'plan', key: 'tabPlan' },
@@ -89,13 +90,14 @@ export function TopBar() {
             </div>
           </div>
         ) : null}
+        <HelpButton />
         <LangSwitch />
         {rescue ? (
           <button type="button" className="btn" onClick={exitRescue}>
             {t('exitRescue')}
           </button>
         ) : (
-          <button type="button" className="btn rescue" onClick={enterRescue} aria-label={t('rescueAria')}>
+          <button type="button" className="btn rescue" data-tour="rescue-btn" onClick={enterRescue} aria-label={t('rescueAria')}>
             {t('rescue')}
           </button>
         )}

@@ -10,7 +10,10 @@ Time: Leonardo (código), Clara Almeida (design, briefing, vídeo), Paiva (a def
 - **Nunca commitar nem dar push.** O Leonardo revisa o código antes de qualquer commit.
 - Nunca pedir a chave de API. Ela fica em `.env.local` (`GEMINI_API_KEY`), lida só no servidor.
 - Nome, textos, cores e fontes: **só** em `src/config/brand.ts`. Parâmetros do traje: `src/config/suit.ts`.
-  Geografia: `src/config/mission.ts`. Nada disso hardcoded em componentes.
+  Geografia: `src/config/mission.ts`. Tela Sobre, time e textos do tutorial: `src/config/about.ts`.
+  Nada disso hardcoded em componentes.
+- Tutorial interativo: passos em `src/components/guide/tourSteps.ts`, ancorados por `data-tour="..."` nos
+  componentes. Ao renomear/remover um elemento com `data-tour`, ajuste o passo correspondente.
 - Todo número simulado aparece com o rótulo `DADOS DE EXEMPLO`. Radiação = estimativa do Curiosity RAD.
   Temperatura THEMIS = aproximada (brilho térmico). Robôs de apoio = conceito.
 - Créditos: NASA/JPL-Caltech, MRO CTX, MOLA, THEMIS, CRISM, USGS Astrogeology, MEDA, RAD.

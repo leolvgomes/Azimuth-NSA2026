@@ -22,7 +22,7 @@ function SimControls() {
   const advance = useAzimuth((s) => s.advance);
   const walking = useAzimuth((s) => s.walking);
   return (
-    <div style={{ marginTop: 12 }}>
+    <div style={{ marginTop: 12 }} data-tour="walk-controls">
       <div className="flex justify-between items-baseline">
         <span className="label">{t('missionClock')}</span>
         <span className="f-mono" style={{ fontSize: 20, color: sim.running ? 'var(--accent)' : undefined }}>

@@ -14,6 +14,8 @@ import { AzimuthBar } from '@/components/azimuth/AzimuthBar';
 import { ReplyCard } from '@/components/azimuth/ReplyCard';
 import { IntroGate } from '@/components/intro/IntroGate';
 import { useT } from '@/lib/useT';
+import { AboutScreen } from '@/components/guide/AboutScreen';
+import { Tour } from '@/components/guide/Tour';
 
 const LEFT_W = { plan: 300, walk: 340, rescue: 400 } as const;
 const RIGHT_W = { plan: 380, walk: 400, rescue: 380 } as const;
@@ -32,13 +34,16 @@ export default function AzimuthApp() {
 
   if (mode === 'intro') {
     return (
-      <IntroGate
-        onEnter={() => setMode('plan')}
-        onRescue={() => {
-          setMode('plan');
-          enterRescue();
-        }}
-      />
+      <>
+        <IntroGate
+          onEnter={() => setMode('plan')}
+          onRescue={() => {
+            setMode('plan');
+            enterRescue();
+          }}
+        />
+        <AboutScreen />
+      </>
     );
   }
 
@@ -73,7 +78,7 @@ export default function AzimuthApp() {
       </div>
 
       {/* barra da Azimuth */}
-      <div className="absolute z-[960]" style={{ left: centerLeft, right: centerRight, bottom: 124, maxWidth: 680 }}>
+      <div className="absolute z-[960]" data-tour="azimuth-bar" style={{ left: centerLeft, right: centerRight, bottom: 124, maxWidth: 680 }}>
         <AzimuthBar />
       </div>
 
@@ -88,6 +93,9 @@ export default function AzimuthApp() {
       <div className="absolute z-[1001] src" style={{ right: 32, bottom: 6, pointerEvents: 'none' }}>
         {brand.credits}
       </div>
+
+      <Tour />
+      <AboutScreen />
     </main>
   );
 }

@@ -42,7 +42,7 @@ export function AlertsStack() {
   const shown = expanded ? list : list.slice(0, 2);
 
   return (
-    <div className="flex flex-col gap-2" aria-live="polite">
+    <div className="flex flex-col gap-2" aria-live="polite" data-tour="alerts">
       <div className="flex gap-2">
         <button type="button" className="mini rf" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
           ! {list.length} {list.length === 1 ? t('alertsCount1') : t('alertsCountN')} · {collapsed ? t('show') : t('hide')}

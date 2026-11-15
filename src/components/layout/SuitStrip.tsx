@@ -6,7 +6,8 @@ import { fmtDist, fmtDuration, fmtKm, fmtPct } from '@/lib/format';
 import { useT } from '@/lib/useT';
 import { SampleTag } from '@/components/ui/SampleTag';
 
-function Gauge({ label, value, display, pct, low, min, max, onChange, sub }: {
+function Gauge({ label, value, display, pct, low, min, max, onChange, sub, tour }: {
+  tour?: string;
   label: string;
   value: number;
   display: string;
@@ -19,7 +20,7 @@ function Gauge({ label, value, display, pct, low, min, max, onChange, sub }: {
 }) {
   const p = Math.max(0, Math.min(100, pct));
   return (
-    <div className="gauge">
+    <div className="gauge" data-tour={tour}>
       <div className="top">
         <span className="label">{label}</span>
         <span className={`v ${low ? 'r' : ''}`}>{display}</span>
@@ -72,6 +73,7 @@ export function SuitStrip() {
   return (
     <footer className="suit" aria-label={t('suitAria')}>
       <Gauge
+        tour="suit-o2"
         label={t('oxygen')}
         value={suit.o2Pct}
         display={fmtPct(suit.o2Pct)}

@@ -16,7 +16,13 @@ export function LayersPanel() {
     <Hud title={t('layers')} style={{ width: 300 }}>
       {LAYER_GROUPS.map((g) => (
         <div key={g.id}>
-          <button type="button" className={`toggle ${layers[g.id] ? 'on' : ''}`} aria-pressed={layers[g.id]} onClick={() => toggle(g.id)}>
+          <button
+            type="button"
+            className={`toggle ${layers[g.id] ? 'on' : ''}`}
+            data-tour={`layer-${g.id}`}
+            aria-pressed={layers[g.id]}
+            onClick={() => toggle(g.id)}
+          >
             <div>
               <div className="n">{t(`layer_${g.id}` as I18nKey)}</div>
               <div className="s">{t(`layer_${g.id}_s` as I18nKey)}</div>
@@ -26,7 +32,7 @@ export function LayersPanel() {
             </div>
           </button>
           {g.id === 'thermal' ? (
-            <div className="seg" role="group" aria-label={t('dayOrNight')}>
+            <div className="seg" role="group" aria-label={t('dayOrNight')} data-tour="day-night">
               <button type="button" className={tod === 'day' ? 'on' : ''} aria-pressed={tod === 'day'} onClick={() => setTod('day')}>
                 {t('day')}
               </button>
