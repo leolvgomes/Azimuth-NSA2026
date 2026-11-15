@@ -3,13 +3,16 @@
  * Casa a intenção por palavras-chave (PT/EN) e executa as MESMAS ferramentas do Gemini,
  * então todos os números vêm do core. Usado no servidor e no cliente.
  */
+import type { Lang } from '@/config/i18n';
 import type { MapData } from '@/core/types';
 import type { AzimuthAction, AzimuthRequest, AzimuthResponse } from './contract';
-import { normalize, resolvePlace, runTool, type RoverRole, type ToolContext } from './tools';
+import { langOf, matchScienceTarget, normalize, resolvePlace, runTool, type RoverRole, type ToolContext } from './tools';
 
-type Lang = 'pt' | 'en';
 type Intent =
-  | 'photo' | 'rover' | 'rescue' | 'oxygen' | 'alerts' | 'compare' | 'time' | 'navigate' | 'focus' | 'help';
+  | 'photo' | 'rover' | 'science' | 'addScience' | 'rescue' | 'oxygen' | 'alerts' | 'compare' | 'time' | 'navigate' | 'focus' | 'help';
+
+const SCIENCE_RE = /\b(scien\w*|cienc\w*|cientific\w*|carbonat\w*|organic\w*|organico\w*|sample\w*|amostra\w*|depot|deposito|wildcat|stops?|paradas?|geolog\w*|clays?|argila\w*|olivin\w*|outcrops?|afloramento\w*|biosignatur\w*|bioassinatura\w*)\b/;
+const ADD_RE = /\b(add|adicion\w*|inclu\w*|include|visit\w*|stop at|via|pass by|pass through|passar|passe|parar em|pare em|collect|colet\w*)\b/;
 
 const has = (t: string, re: RegExp) => re.test(t);
 
@@ -26,6 +29,7 @@ export function detectIntent(raw: string): Intent {
   if (has(t, /\b(foto|fotos|photo|photos|picture|imagem|image)\b/)) return 'photo';
   if (has(t, /\b(rover|rovers|robo|robot|batedor|scout|drone|repetidor|relay)\b/) &&
       has(t, /\b(cham\w*|call|mand\w*|send|envi\w*|pe(ca|dir)|dispatch|traga|bring|batedor|scout)\b/)) return 'rover';
+  if (has(t, SCIENCE_RE)) return has(t, ADD_RE) ? 'addScience' : 'science';
   if (has(t, /\b(resgate|socorro|emergencia|rescue|help me|sos|mayday|voltar|volta|retornar|return|go back|get back|way home)\b/)) return 'rescue';
   if (has(t, /\b(oxigenio|o2|ar|margem|autonomia|oxygen|air|margin|enough|suficiente|sobra)\b/)) return 'oxygen';
   if (has(t, /\b(alerta|alertas|perigo|perigos|risco|riscos|alert|alerts|hazard|hazards|danger|warning|warnings)\b/)) return 'alerts';
@@ -57,7 +61,7 @@ const critTxt = (n: number, lang: Lang) => (lang === 'pt' ? `${n} ${n === 1 ? 'a
 
 /** "até a frente do delta" / "até Séítah". */
 const toPlace = (label: string, lang: Lang) => {
-  if (lang === 'en') return /^Frente do delta/i.test(label) ? 'the delta front' : /^Base( |$)/.test(label) ? 'base' : label;
+  if (lang === 'en') return /^(Frente do delta|Delta front)$/i.test(label) ? 'the delta front' : /^Base( |$)/.test(label) ? 'base' : label;
   return /^(Frente|Base|Cratera|Borda|Unidade|Margem) /.test(label) ? `a ${label[0].toLowerCase()}${label.slice(1)}` : label;
 };
 
@@ -67,9 +71,20 @@ const rn = (r: { label?: unknown; profile?: unknown }, lang: Lang) =>
   lang === 'pt' ? String(r.label ?? '').toLowerCase() : EN_PROFILE[String(r.profile)] ?? String(r.label ?? '');
 
 const HELP = {
-  pt: 'Posso traçar rotas, comparar opções, calcular sua margem de oxigênio, mostrar fotos dos rovers ou iniciar o resgate.',
-  en: 'I can plan routes, compare options, check your oxygen margin, show rover photos or start a rescue.',
+  pt: 'Posso traçar rotas, comparar opções, calcular sua margem de oxigênio, mostrar paradas científicas e fotos dos rovers ou iniciar o resgate.',
+  en: 'I can plan routes, compare options, check your oxygen margin, show science stops and rover photos, or start a rescue.',
 };
+
+/** Primeira frase de um texto (para caber no cartão). */
+const firstSentence = (txt: string) => {
+  const m = String(txt ?? '').match(/^.*?[.!?](\s|$)/);
+  return (m ? m[0] : String(txt ?? '')).trim().replace(/[.!?]$/, '');
+};
+const lowerFirst = (x: string) => (x ? x[0].toLowerCase() + x.slice(1) : x);
+/** Tira parênteses ("Skinner Ridge (Hawksbill Gap)" → "Skinner Ridge"). */
+const noParens = (x: string) => String(x ?? '').replace(/\s*\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
+/** Primeira oração (até ":", ";" ou fim da frase), sem parênteses. */
+const firstClause = (x: string) => noParens(firstSentence(x)).split(/[:;]/)[0].trim();
 
 type S = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
@@ -96,7 +111,8 @@ function parseLatLng(t: string): { lat: number; lng: number } | null {
 
 export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise<AzimuthResponse> {
   const last = [...(req.messages ?? [])].reverse().find((m) => m.role === 'user')?.text ?? '';
-  const lang = detectLang(last);
+  // Responde no idioma da interface (padrão inglês); detectLang fica só como diagnóstico.
+  const lang: Lang = langOf(req.snapshot ?? {});
   const t = normalize(last);
   const ctx: ToolContext = { data, snapshot: { ...req.snapshot, routes: req.snapshot.routes ?? [] } };
   const actions: AzimuthAction[] = [];
@@ -107,7 +123,12 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
   };
   const out = (text: string): AzimuthResponse => ({ text, actions, source: 'offline' });
 
-  switch (detectIntent(last)) {
+  let intent = detectIntent(last);
+  // "add Enchanted Lake": nome próprio de alvo científico + verbo de incluir, sem palavra de ciência.
+  if ((intent === 'navigate' || intent === 'focus' || intent === 'help') && ADD_RE.test(t) && matchScienceTarget(t, data)?.specific) {
+    intent = 'addScience';
+  }
+  switch (intent) {
     case 'navigate': {
       const ll = parseLatLng(t);
       const place = ll ? null : resolvePlace(t, data);
@@ -123,10 +144,14 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
         ? L(lang, ` Atenção: ${critTxt(best.criticalAlerts, lang)} no caminho.`, ` Heads up: ${critTxt(best.criticalAlerts, lang)} on the way.`)
         : best.o2BackAtBaseAfterRoundTripPct < 20
           ? L(lang, ' Margem de O₂ apertada, fique de olho.', ' Tight oxygen margin, keep an eye on it.')
-          : '';
+          : s.scienceStopsAlongRecommended > 0
+            ? L(lang,
+              ` Há ${s.scienceStopsAlongRecommended === 1 ? '1 parada científica' : `${s.scienceStopsAlongRecommended} paradas científicas`} no caminho, quer ver?`,
+              ` There ${s.scienceStopsAlongRecommended === 1 ? 'is 1 science stop' : `are ${s.scienceStopsAlongRecommended} science stops`} on the way, want to see?`)
+            : '';
       return out(L(lang,
         `Tracei ${s.routes.length} rotas até ${toPlace(s.destination, lang)}; a ${rn(best, lang)} tem ${fmt(best.distanceKm, lang)} km, cerca de ${fmtMin(best.durationMin)}, e você volta à base com ${best.o2BackAtBaseAfterRoundTripPct}% de O₂.${danger}`,
-        `I've traced ${s.routes.length} routes to ${s.destination}; the ${rn(best, lang)} one is ${fmt(best.distanceKm, lang)} km, about ${fmtMin(best.durationMin)}, and you'd be back at base with ${best.o2BackAtBaseAfterRoundTripPct}% O₂.${danger}`));
+        `I've traced ${s.routes.length} routes to ${toPlace(s.destination, lang)}; the ${rn(best, lang)} one is ${fmt(best.distanceKm, lang)} km, about ${fmtMin(best.durationMin)}, and you'd be back at base with ${best.o2BackAtBaseAfterRoundTripPct}% O₂.${danger}`));
     }
 
     case 'compare': {
@@ -144,6 +169,61 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
       return out(L(lang,
         `A ${rn(best, lang)} tem inclinação máxima de ${best.maxSlopeDeg}° e ${alertsTxt(bestAlerts, lang)}; a ${rn(fast, lang)} ganha ${s.minutesSavedByFastest} min, mas com ${alertsTxt(fast.criticalAlerts + fast.warnings, lang)} e ${fast.maxSlopeDeg}°. Recomendo a ${rn(best, lang)}, já selecionei para você.`,
         `The ${rn(best, lang)} route peaks at ${best.maxSlopeDeg}° with ${alertsTxt(bestAlerts, lang)}; the ${rn(fast, lang)} one saves ${s.minutesSavedByFastest} min but has ${alertsTxt(fast.criticalAlerts + fast.warnings, lang)} and ${fast.maxSlopeDeg}°. I recommend the ${rn(best, lang)} route and have selected it.`));
+    }
+
+    case 'science': {
+      const s = run('science_stops');
+      if (s.error) return out(L(lang, 'Ainda não há rota. Diga para onde vamos e eu mostro a ciência no caminho.', "There's no route yet. Tell me where to go and I'll show the science on the way."));
+      if (!s.count) {
+        const o = (s.otherTargets as S[])[0];
+        if (!o) return out(L(lang, 'Não tenho alvos científicos carregados para esta área.', "I don't have science targets loaded for this area."));
+        return out(L(lang,
+          `Nenhum alvo científico bem na rota; o mais importante perto é ${o.name}, a ${fmt(o.offRouteKm, lang)} km dela. Quer que eu inclua a parada?`,
+          `No science targets right on this route; the top one nearby is ${o.name}, ${fmt(o.offRouteKm, lang)} km off it. Want me to add the stop?`));
+      }
+      const stops = s.stops as S[];
+      const top = [...stops].sort((a, b) => a.priority - b.priority || a.alongKm - b.alongKm)[0];
+      const n = s.count as number;
+      return out(L(lang,
+        `${n === 1 ? '1 parada científica' : `${n} paradas científicas`} no caminho; a principal é ${noParens(top.name)}, a ${fmt(top.alongKm, lang)} km: ${lowerFirst(firstClause(top.why))}. Tarefa: ${lowerFirst(firstClause(top.task))} (${top.workMin} min).`,
+        `${n === 1 ? '1 science stop' : `${n} science stops`} on the way; the key one is ${noParens(top.name)} at ${fmt(top.alongKm, lang)} km: ${lowerFirst(firstClause(top.why))}. Task: ${lowerFirst(firstClause(top.task))} (${top.workMin} min).`));
+    }
+
+    case 'addScience': {
+      // A ferramenta resolve o alvo com o corredor da rota (genérico → o mais perto).
+      const s = run('add_science_stop', { targets: [last] });
+      if (s.error === 'no_nearby_target') {
+        const far = s.nearestOfKind as S;
+        const sug = s.suggestion as S | null;
+        const tail = sug
+          ? (sug.offRouteKm < 0.1
+            ? L(lang, ` Sugiro ${noParens(sug.name)}, que já está no caminho; quer incluir?`, ` I suggest ${noParens(sug.name)} instead, right on the way; want me to add it?`)
+            : L(lang, ` Sugiro ${noParens(sug.name)}, a ${fmt(sug.offRouteKm, lang)} km da rota; quer incluir?`, ` I suggest ${noParens(sug.name)} instead, ${fmt(sug.offRouteKm, lang)} km off the route; want me to add it?`))
+          : '';
+        return out(L(lang,
+          `Não há esse tipo de alvo perto da rota: o mais próximo, ${noParens(far.name)}, fica a ${fmt(far.offRouteKm, lang)} km.${tail}`,
+          `There's no target of that kind near the route: the closest, ${noParens(far.name)}, is ${fmt(far.offRouteKm, lang)} km off.${tail}`));
+      }
+      if (s.error === 'unknown_science_target') {
+        return out(L(lang,
+          'Não reconheci esse alvo. Posso incluir, por exemplo, Enchanted Lake, Wildcat Ridge ou o depósito Three Forks.',
+          "I didn't recognise that target. I can add, for example, Enchanted Lake, Wildcat Ridge or the Three Forks sample depot."));
+      }
+      if (s.error) return out(L(lang, 'Não consegui replanejar a rota com essa parada.', "I couldn't replan the route with that stop."));
+      const a = (s.added as S[])[0];
+      const r = s.recommended as S;
+      const extra = s.extraMinutesVsPrevious;
+      const extraO2 = s.extraO2VsPreviousPct;
+      const head = L(lang, `Incluí ${noParens(a.name)} (${a.workMin} min de trabalho)`, `Added ${noParens(a.name)} (${a.workMin} min of work)`);
+      const cost = typeof extra === 'number' && extra > 0
+        ? (typeof extraO2 === 'number' && extraO2 > 0
+          ? L(lang, `: +${fmtMin(extra)} e +${extraO2}% de O₂ no total`, `: +${fmtMin(extra)} and +${extraO2}% O₂ overall`)
+          : L(lang, `: +${fmtMin(extra)} no total`, `: +${fmtMin(extra)} overall`))
+        : L(lang, `: ${fmt(r.distanceKm, lang)} km, cerca de ${fmtMin(r.durationMin)}`, `: ${fmt(r.distanceKm, lang)} km, about ${fmtMin(r.durationMin)}`);
+      const o2 = s.o2MarginOk
+        ? L(lang, `, e você volta à base com ${r.o2BackAtBaseAfterRoundTripPct}% de O₂.`, `, and you'd be back at base with ${r.o2BackAtBaseAfterRoundTripPct}% O₂.`)
+        : L(lang, `. Atenção: a margem de O₂ fica baixa (${r.o2BackAtBaseAfterRoundTripPct}% ao voltar), melhor pular essa parada.`, `. Careful: O₂ margin gets low (${r.o2BackAtBaseAfterRoundTripPct}% back at base), better skip this stop.`);
+      return out(`${head}${cost}${o2}`);
     }
 
     case 'oxygen': {
@@ -197,9 +277,12 @@ export async function offlineAnswer(req: AzimuthRequest, data: MapData): Promise
       const s = run('nearest_photo');
       if (s.error) return out(L(lang, 'Não tenho fotos de rover carregadas para esta área.', "I don't have rover photos loaded for this area."));
       const dist = s.distanceM >= 1000 ? `${fmt(s.distanceM / 1000, lang)} km` : `${s.distanceM} m`;
+      // Legenda sem ids de arquivo entre parênteses; o sol só entra se a legenda não o citar.
+      const caption = String(s.caption ?? '').replace(/\s*\([A-Za-z0-9_]{12,}\)/g, '').trim().replace(/[.]$/, '');
+      const meta = /\bsol\s*\d+/i.test(caption) ? `${s.camera}` : `sol ${s.sol}, ${s.camera}`;
       return out(L(lang,
-        `Foto real mais próxima, a ${dist} daqui: ${s.caption} (sol ${s.sol}, ${s.camera}).`,
-        `Nearest real photo, ${dist} away: ${s.caption} (sol ${s.sol}, ${s.camera}).`));
+        `Foto real mais próxima, a ${dist} daqui: ${caption} (${meta}).`,
+        `Nearest real photo, ${dist} away: ${caption} (${meta}).`));
     }
 
     case 'rover': {

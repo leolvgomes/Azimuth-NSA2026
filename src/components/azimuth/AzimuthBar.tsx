@@ -1,18 +1,15 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { brand } from '@/config/brand';
+import { LOCALE } from '@/config/i18n';
 import { useAzimuth } from '@/state/store';
 import { askAzimuth } from '@/lib/azimuthClient';
 import { getRecognizerCtor, listen, type Recognizer } from '@/lib/speech';
+import { useT } from '@/lib/useT';
 
-const HINTS: Record<string, string> = {
-  plan: '“me leve até o delta” · “quanto O₂ tenho de margem?”',
-  walk: '“o que tem à frente?” · “mostra a foto”',
-  rescue: '“quanto tempo até a base?” · “chama o robô”',
-};
-
-/** Barra fixa da Azimuth: texto + microfone (Web Speech API, pt-BR). */
+/** Barra fixa da Azimuth: texto + microfone (Web Speech API, no idioma da interface). */
 export function AzimuthBar() {
+  const { t, lang } = useT();
   const mode = useAzimuth((s) => s.mode);
   const loading = useAzimuth((s) => s.chat.loading);
   const speakReplies = useAzimuth((s) => s.speakReplies);
@@ -26,10 +23,12 @@ export function AzimuthBar() {
     setCanListen(!!getRecognizerCtor());
   }, []);
 
-  const send = (t = text) => {
-    if (!t.trim()) return;
+  const hint = mode === 'walk' ? t('hintWalk') : mode === 'rescue' ? t('hintRescue') : t('hintPlan');
+
+  const send = (msg = text) => {
+    if (!msg.trim()) return;
     setText('');
-    void askAzimuth(t);
+    void askAzimuth(msg);
   };
 
   const toggleMic = () => {
@@ -38,14 +37,15 @@ export function AzimuthBar() {
       return;
     }
     rec.current = listen(
-      (t, final) => {
-        setText(t);
+      (said, final) => {
+        setText(said);
         if (final) {
           rec.current?.stop();
-          send(t);
+          send(said);
         }
       },
       () => setListening(false),
+      LOCALE[lang],
     );
     setListening(!!rec.current);
   };
@@ -63,8 +63,8 @@ export function AzimuthBar() {
       <input
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder={loading ? 'Pensando…' : HINTS[mode] ?? HINTS.plan}
-        aria-label={`Pergunte à ${brand.assistantName}`}
+        placeholder={loading ? t('thinking') : hint}
+        aria-label={`${t('ask')} ${brand.assistantName}`}
         disabled={loading}
       />
       <button
@@ -73,17 +73,17 @@ export function AzimuthBar() {
         style={{ fontSize: 15 }}
         onClick={() => setSpeak(!speakReplies)}
         aria-pressed={speakReplies}
-        aria-label="Ler respostas em voz alta"
-        title="Ler respostas em voz alta"
+        aria-label={t('readAloud')}
+        title={t('readAloud')}
       >
         🔊
       </button>
       {canListen ? (
-        <button type="button" className={`ib ${listening ? 'live' : ''}`} onClick={toggleMic} aria-pressed={listening} aria-label="Falar com a Azimuth" title="Falar (pt-BR)">
+        <button type="button" className={`ib ${listening ? 'live' : ''}`} onClick={toggleMic} aria-pressed={listening} aria-label={t('speakTo')} title={t('speakTo')}>
           🎙
         </button>
       ) : null}
-      <button type="submit" className="ib f" disabled={loading || !text.trim()} aria-label="Enviar">
+      <button type="submit" className="ib f" disabled={loading || !text.trim()} aria-label={t('send')}>
         ↑
       </button>
     </form>

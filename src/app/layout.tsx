@@ -10,12 +10,12 @@ const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', displ
 
 export const metadata: Metadata = {
   title: `${brand.fullName} · ${brand.tagline}`,
-  description: `${brand.subtitle} ${brand.challenge}.`,
+  description: `${brand.text.en.description} ${brand.challenge}.`,
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="pt-BR" style={brandCssVars() as CSSProperties} className={`${display.variable} ${body.variable} ${mono.variable}`}>
+    <html lang="en" style={brandCssVars() as CSSProperties} className={`${display.variable} ${body.variable} ${mono.variable}`}>
       <body>{children}</body>
     </html>
   );

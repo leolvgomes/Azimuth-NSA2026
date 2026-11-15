@@ -2,109 +2,133 @@
   {
     "id": "octavia-e-butler-landing",
     "name": "Octavia E. Butler Landing",
+    "nameEn": "Octavia E. Butler Landing",
     "lat": 18.4447,
     "lng": 77.4508,
     "kind": "landing",
     "description": "Local de pouso do Perseverance (18 fev 2021). Base e abrigo da missão.",
+    "descriptionEn": "Perseverance landing site (18 Feb 2021). Mission base and shelter.",
     "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 13: 18.44463, 77.45089)"
   },
   {
     "id": "jezero-delta",
     "name": "Delta de Jezero",
+    "nameEn": "Jezero delta",
     "lat": 18.50244,
     "lng": 77.36304,
     "kind": "delta",
     "description": "Delta em leque formado por um rio que desaguava no antigo lago da cratera; alvo principal de amostras.",
+    "descriptionEn": "Fan-shaped delta built by a river that flowed into the ancient crater lake; main sampling target.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
   },
   {
     "id": "delta-front",
     "name": "Frente do delta (Hawksbill Gap)",
+    "nameEn": "Delta front (Hawksbill Gap)",
     "lat": 18.4571,
     "lng": 77.4088,
     "kind": "delta",
     "description": "Base da rampa por onde o Perseverance subiu a frente do delta (sols 437-470). Destino do demo.",
+    "descriptionEn": "Base of the ramp Perseverance used to climb the delta front (sols 437-470). Demo destination.",
     "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 437)"
   },
   {
     "id": "enchanted-lake",
     "name": "Enchanted Lake",
+    "nameEn": "Enchanted Lake",
     "lat": 18.4494,
     "lng": 77.4052,
     "kind": "poi",
     "description": "Afloramento na base da escarpa do delta, primeira parada do rover na frente do delta (~sol 415).",
+    "descriptionEn": "Outcrop at the foot of the delta scarp; the rover's first stop at the delta front (~sol 415).",
     "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 415)"
   },
   {
     "id": "three-forks",
     "name": "Depósito Three Forks",
+    "nameEn": "Three Forks sample depot",
     "lat": 18.4514,
     "lng": 77.4013,
     "kind": "poi",
     "description": "Onde o Perseverance deixou 10 tubos de amostras para uma futura missão de retorno (sols 586-653).",
+    "descriptionEn": "Where Perseverance left 10 sample tubes for a future return mission (sols 586-653).",
     "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sols 592-632)"
   },
   {
     "id": "neretva-vallis",
     "name": "Neretva Vallis",
+    "nameEn": "Neretva Vallis",
     "lat": 18.59244,
     "lng": 77.20909,
     "kind": "channel",
     "description": "Vale do antigo rio que alimentava o lago de Jezero, entrando pelo oeste.",
+    "descriptionEn": "Valley of the ancient river that fed Jezero's lake from the west.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
   },
   {
     "id": "western-breach",
     "name": "Brecha oeste",
+    "nameEn": "Western breach",
     "lat": 18.51864,
     "lng": 77.24755,
     "kind": "breach",
     "description": "Onde Neretva Vallis rompe a borda da cratera; paredes íngremes.",
+    "descriptionEn": "Where Neretva Vallis cuts through the crater rim; steep walls.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
   },
   {
     "id": "belva",
     "name": "Cratera Belva",
+    "nameEn": "Belva crater",
     "lat": 18.4835,
     "lng": 77.3783,
     "kind": "crater",
     "description": "Cratera de ~1 km no topo do delta que expõe camadas do delta.",
+    "descriptionEn": "~1 km crater on the delta top that exposes the delta layers.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
   },
   {
     "id": "seitah",
     "name": "Séítah",
+    "nameEn": "Séítah",
     "lat": 18.424,
     "lng": 77.427,
     "kind": "unit",
     "description": "Unidade com cristas rochosas (olivina) e dunas de areia, a sudoeste do pouso. Explorada pela borda.",
+    "descriptionEn": "Unit of rocky olivine ridges and sand dunes southwest of the landing site; explored along its edge.",
     "source": "Approximate centre; NASA/JPL Perseverance mission reports + CTX"
   },
   {
     "id": "maaz",
     "name": "Máaz",
+    "nameEn": "Máaz",
     "lat": 18.447,
     "lng": 77.462,
     "kind": "unit",
     "description": "Formação do assoalho da cratera ao redor do pouso: rochas vulcânicas planas, terreno bom para caminhar.",
+    "descriptionEn": "Crater-floor formation around the landing site: flat volcanic rock, good walking terrain.",
     "source": "Approximate label position; NASA/JPL Perseverance mission reports"
   },
   {
     "id": "kodiak",
     "name": "Kodiak",
+    "nameEn": "Kodiak",
     "lat": 18.43948,
     "lng": 77.40819,
     "kind": "poi",
     "description": "Morro testemunho (butte) remanescente do delta, ~2 km a sudoeste da frente do delta.",
+    "descriptionEn": "Butte left over from the delta, ~2 km southwest of the delta front.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; identification approximate"
   },
   {
     "id": "west-rim",
     "name": "Borda oeste de Jezero",
+    "nameEn": "Jezero western rim",
     "lat": 18.35677,
     "lng": 77.26982,
     "kind": "crater",
     "description": "Borda da cratera (45 km de diâmetro), ~600 m acima do assoalho.",
+    "descriptionEn": "Rim of the 45 km crater, ~600 m above the floor.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline + CTX DTM"
   }
 ]

@@ -17,7 +17,9 @@ import type { Alert, LatLng, Route } from '@/core/types';
 import { useAzimuth } from '@/state/store';
 import { firstAvailable, groupOf, loadLayers, pickLayer, type LayerDef } from '@/lib/layers';
 import { fmtDist, fmtKm, upper } from '@/lib/format';
-import { robotLabelPt } from '@/components/azimuth/robots';
+import { robotLabel } from '@/components/azimuth/robots';
+import { localized } from '@/config/i18n';
+import { useT } from '@/lib/useT';
 
 const C = brand.colors;
 
@@ -171,6 +173,7 @@ function DataVectors() {
   const selectedPhoto = useAzimuth((s) => s.selectedPhoto);
   const selectPhoto = useAzimuth((s) => s.selectPhoto);
   const zoom = useAzimuth((s) => s.zoom);
+  const { t, lang } = useT();
   if (!data) return null;
   const track = data.perseveranceTrack;
   return (
@@ -179,20 +182,22 @@ function DataVectors() {
         ? data.hazards.map((h) => {
             const color = C.alert;
             const opacity = h.severity === 'avoid' ? 0.18 : 0.1;
+            const name = localized(h.name, h.nameEn, lang);
+            const advice = localized(h.advice, h.adviceEn, lang);
             const labelAt: [number, number] | null = h.polygon?.length ? centroid(h.polygon) : h.center ? ll(h.center) : null;
             return (
               <Fragment key={h.id}>
                 {h.polygon?.length ? (
                   <Polygon positions={h.polygon} pathOptions={{ color, weight: 1.5, dashArray: '6 4', fillColor: color, fillOpacity: opacity }}>
-                    <Tooltip sticky className="az-tip">{h.name} · {h.advice}</Tooltip>
+                    <Tooltip sticky className="az-tip">{name} · {advice}</Tooltip>
                   </Polygon>
                 ) : h.center && h.radiusM ? (
                   // Leaflet mede o raio em metros da Terra: convertemos pelo raio de Marte (só desenho)
                   <Circle center={ll(h.center)} radius={h.radiusM * (6371008.8 / 3396190)} pathOptions={{ color, weight: 1.5, dashArray: '6 4', fillColor: color, fillOpacity: opacity }}>
-                    <Tooltip sticky className="az-tip">{h.name} · {h.advice}</Tooltip>
+                    <Tooltip sticky className="az-tip">{name} · {advice}</Tooltip>
                   </Circle>
                 ) : null}
-                {labelAt && zoom >= LABEL_ZOOM ? <Marker position={labelAt} icon={labelIcon(h.name.split('(')[0].trim(), 'r', -30, -11)} interactive={false} keyboard={false} /> : null}
+                {labelAt && zoom >= LABEL_ZOOM ? <Marker position={labelAt} icon={labelIcon(name.split('(')[0].trim(), 'r', -30, -11)} interactive={false} keyboard={false} /> : null}
               </Fragment>
             );
           })
@@ -211,7 +216,7 @@ function DataVectors() {
               position={ll(p)}
               icon={ICONS.photo(selectedPhoto?.id === p.id)}
               eventHandlers={{ click: () => selectPhoto(p, true) }}
-              title={`Foto ${p.camera} · sol ${p.sol}`}
+              title={`${t('photoOf')} ${p.camera} · ${t('sol')} ${p.sol}`}
               keyboard
             />
           ))
@@ -220,7 +225,7 @@ function DataVectors() {
       {data.landmarks
         .filter((l) => l.kind !== 'landing' && zoom >= LABEL_ZOOM)
         .map((l) => (
-          <Marker key={l.id} position={ll(l)} icon={labelIcon(l.name, l.kind === 'delta' ? 'a' : '', 8, -11)} interactive={false} keyboard={false} />
+          <Marker key={l.id} position={ll(l)} icon={labelIcon(localized(l.name, l.nameEn, lang), l.kind === 'delta' ? 'a' : '', 8, -11)} interactive={false} keyboard={false} />
         ))}
     </>
   );
@@ -241,6 +246,8 @@ function RouteLayers() {
   const selectRoute = useAzimuth((s) => s.selectRoute);
   const photoNear = useAzimuth((s) => s.photoNear);
   const robot = useAzimuth((s) => s.robot);
+  const simDist = useAzimuth((s) => s.sim.distM);
+  const { t, lang } = useT();
   const active = routes.find((r) => r.id === activeId) ?? null;
   const isRescue = mode === 'rescue';
   const isWalk = mode === 'walk';
@@ -280,8 +287,8 @@ function RouteLayers() {
           <Polyline positions={active.points.map(ll)} pathOptions={{ color: C.text, weight: 2, dashArray: '4 6', opacity: 0.45 }} interactive={false} />
         ) : isWalk ? (
           <>
-            <Polyline positions={active.points.slice(0, progressIdx + 1).map(ll)} pathOptions={{ color: C.accent, weight: 5, opacity: 0.35 }} interactive={false} />
-            <Polyline positions={active.points.slice(progressIdx).map(ll)} pathOptions={{ color: C.accent, weight: 5, lineJoin: 'round' }} interactive={false} />
+            <Polyline positions={[...active.points.slice(0, progressIdx + 1).map(ll), ll(position)]} pathOptions={{ color: C.accent, weight: 5, opacity: 0.35 }} interactive={false} />
+            <Polyline positions={[ll(position), ...active.points.slice(progressIdx + 1).map(ll)]} pathOptions={{ color: C.accent, weight: 5, lineJoin: 'round' }} interactive={false} />
           </>
         ) : (
           <Polyline
@@ -304,18 +311,21 @@ function RouteLayers() {
 
       {/* pontos da rota (planejar) */}
       {active && mode === 'plan'
-        ? waypoints.map((p, i) => <Marker key={i} position={ll(p)} icon={ICONS.point()} eventHandlers={{ click: () => photoNear(p) }} title={`Ponto ${i + 1}: ver foto mais próxima`} />)
+        ? waypoints.map((p, i) => <Marker key={i} position={ll(p)} icon={ICONS.point()} eventHandlers={{ click: () => photoNear(p) }} title={t('pointPhoto', { n: i + 1 })} />)
         : null}
 
       {/* destino */}
       {dest && !isRescue ? (
         <>
           <Marker position={ll(dest)} icon={ICONS.target()} interactive={false} keyboard={false} />
+          {/* na chegada, o rótulo do destino some para não brigar com o "Você" */}
+          {isWalk && active!.distanceM - simDist < 150 ? null : (
           <Marker
             position={ll(dest)}
-            icon={labelIcon(isWalk ? `Destino · ${fmtKm(active!.distanceM)}` : 'Destino', 'a', 22, -11)}
+            icon={labelIcon(isWalk ? `${t('destination')} · ${fmtKm(active!.distanceM - simDist)}` : t('destination'), 'a', 22, -11)}
             interactive={false} keyboard={false}
           />
+          )}
         </>
       ) : null}
 
@@ -323,7 +333,7 @@ function RouteLayers() {
       {pnr && !isRescue && active ? (
         <>
           <Marker position={ll(pnr)} icon={ICONS.pnr()} interactive={false} keyboard={false} />
-          <Marker position={ll(pnr)} icon={labelIcon(`Ponto sem retorno · km ${(pnr.distM / 1000).toFixed(1)}`, '', 20, -11)} interactive={false} keyboard={false} />
+          <Marker position={ll(pnr)} icon={labelIcon(`${t('pnrMap')} · km ${(pnr.distM / 1000).toFixed(1)}`, '', 20, -11)} interactive={false} keyboard={false} />
         </>
       ) : null}
 
@@ -332,15 +342,15 @@ function RouteLayers() {
         <>
           <Polyline positions={rescue.returnRoute.points.map(ll)} pathOptions={{ color: C.alert, weight: 5, lineJoin: 'round' }} interactive={false} />
           <Marker position={ll(rescue.shelter)} icon={ICONS.shelter()} interactive={false} keyboard={false} />
-          <Marker position={ll(rescue.shelter)} icon={labelIcon(`Abrigo · ${rescue.shelter.name.split('·')[0].trim()}`, '', 24, -30)} interactive={false} keyboard={false} />
+          <Marker position={ll(rescue.shelter)} icon={labelIcon(`${t('shelter')} · ${rescue.shelter.name.split('·')[0].trim()}`, '', 24, -30)} interactive={false} keyboard={false} />
           {rescue.pointOfNoReturn ? (
             <Marker
               position={ll(rescue.pointOfNoReturn)}
-              icon={labelIcon(rescue.passedPointOfNoReturn ? 'Ponto sem retorno (passou)' : 'Ponto sem retorno (não passou)', 'r', 14, -11)}
+              icon={labelIcon(rescue.passedPointOfNoReturn ? t('pnrPassedMap') : t('pnrNotPassedMap'), 'r', 14, -11)}
               interactive={false} keyboard={false}
             />
           ) : null}
-          {robot ? <RobotMarker from={rescue.shelter} to={position} etaMin={robot.etaMin} startedAt={robot.startedAt} label={robotLabelPt(robot.role)} /> : null}
+          {robot ? <RobotMarker from={rescue.shelter} to={position} etaMin={robot.etaMin} startedAt={robot.startedAt} label={robotLabel(robot.role, lang)} arrivedText={t('arrivedLbl')} /> : null}
         </>
       ) : null}
 
@@ -351,7 +361,7 @@ function RouteLayers() {
           <Marker position={ll(position)} icon={ICONS.me(isRescue)} interactive={false} keyboard={false} zIndexOffset={1000} />
           <Marker
             position={ll(position)}
-            icon={labelIcon(isRescue ? (returning ? 'Você · voltando' : 'Você') : `Você · km ${((here?.distM ?? 0) / 1000).toFixed(1)}`, isRescue ? 'r' : 'a', 34, -11)}
+            icon={labelIcon(isRescue ? (returning ? t('youReturning') : t('youLbl')) : `${t('youLbl')} · km ${(simDist / 1000).toFixed(1)}`, isRescue ? 'r' : 'a', 24, isWalk ? -40 : -11)}
             interactive={false} keyboard={false}
             zIndexOffset={1000}
           />
@@ -362,7 +372,7 @@ function RouteLayers() {
 }
 
 /** Conceito: robô sai do abrigo e vem até você (1 min simulado = 2 s). */
-function RobotMarker({ from, to, etaMin, startedAt, label }: { from: LatLng; to: LatLng; etaMin: number; startedAt: number; label: string }) {
+function RobotMarker({ from, to, etaMin, startedAt, label, arrivedText }: { from: LatLng; to: LatLng; etaMin: number; startedAt: number; label: string; arrivedText: string }) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 200);
@@ -376,9 +386,54 @@ function RobotMarker({ from, to, etaMin, startedAt, label }: { from: LatLng; to:
     <>
       <Polyline positions={[ll(from), ll(at)]} pathOptions={{ color: C.text, weight: 2, dashArray: '3 5' }} interactive={false} />
       <Marker position={ll(at)} icon={ICONS.robot()} interactive={false} keyboard={false} />
-      <Marker position={ll(at)} icon={labelIcon(t >= 1 ? `${label} · chegou` : `${label} · ${left} min`, '', 18, -11)} interactive={false} keyboard={false} />
+      <Marker position={ll(at)} icon={labelIcon(t >= 1 ? `${label} · ${arrivedText}` : `${label} · ${left} min`, '', 18, -11)} interactive={false} keyboard={false} />
     </>
   );
+}
+
+// ---------- ciência ----------
+function ScienceLayer() {
+  const targets = useAzimuth((s) => s.mapData?.scienceTargets);
+  const chosen = useAzimuth((s) => s.chosenStopIds);
+  const highlighted = useAzimuth((s) => s.highlightedScience);
+  const focusOn = useAzimuth((s) => s.focusOn);
+  const { t, lang } = useT();
+  if (!targets?.length) return null;
+  return (
+    <>
+      {targets.map((tg) => {
+        const on = chosen.includes(tg.id);
+        const hl = highlighted.includes(tg.id);
+        return (
+          <Marker
+            key={tg.id}
+            position={ll(tg)}
+            icon={divIcon(`sci:${on}:${hl}`, `<div class="sci ${on ? 'on' : ''} ${hl ? 'hl' : ''}" style="transform:rotate(45deg)"><span style="transform:rotate(-45deg)">⚗</span></div>`, 22)}
+            eventHandlers={{ click: () => focusOn(tg, 14) }}
+            zIndexOffset={on ? 600 : 300}
+          >
+            <Tooltip direction="top" offset={[0, -14]} className="az-tip-sci">
+              <b>{localized(tg.name, tg.nameEn, lang)}</b>
+              <br />
+              {localized(tg.why, tg.whyEn, lang)}
+              <br />
+              <span style={{ color: 'var(--accent)' }}>
+                {t('scienceTooltipTask')}: {localized(tg.task, tg.taskEn, lang)} · {tg.workMin} min
+              </span>
+            </Tooltip>
+          </Marker>
+        );
+      })}
+    </>
+  );
+}
+
+/** Ponto da rota sob o mouse no perfil de elevação. */
+function HoverDot() {
+  const idx = useAzimuth((s) => s.hoverIdx);
+  const p = useAzimuth((s) => (s.hoverIdx != null ? s.routes.find((r) => r.id === s.activeRouteId)?.points[s.hoverIdx] : undefined));
+  if (idx == null || !p) return null;
+  return <Marker position={ll(p)} icon={divIcon('hover', '<div class="hover-dot"></div>', 14)} interactive={false} keyboard={false} zIndexOffset={2000} />;
 }
 
 // ---------- desenho ----------
@@ -454,6 +509,20 @@ function FocusController() {
   return null;
 }
 
+/** Na caminhada simulada: se você sair do miolo da tela, o mapa acompanha (pan suave). */
+function FollowPosition() {
+  const map = useMap();
+  const mode = useAzimuth((s) => s.mode);
+  const running = useAzimuth((s) => s.sim.running);
+  const position = useAzimuth((s) => s.position);
+  useEffect(() => {
+    if (mode !== 'walk' || !running) return;
+    const inner = map.getBounds().pad(-0.3);
+    if (!inner.contains([position.lat, position.lng])) map.panTo([position.lat, position.lng], { animate: true, duration: 0.6 });
+  }, [map, mode, running, position]);
+  return null;
+}
+
 /** Barra de escala em metros de MARTE (o L.control.scale usaria o raio da Terra). */
 function MarsScale() {
   const map = useMap();
@@ -494,6 +563,8 @@ function MarsScale() {
 
 export default function MapInner() {
   const mode = useAzimuth((s) => s.mode);
+  const { t } = useT();
+  const baseLabel = t('baseShelter');
   return (
     <div className={`absolute inset-0 z-0 az-map ${mode === 'rescue' ? 'az-map-rescue' : ''}`}>
       <MapContainer
@@ -511,11 +582,14 @@ export default function MapInner() {
         <RasterLayers />
         <DataVectors />
         <RouteLayers />
+        <ScienceLayer />
         <DrawLayer />
+        <HoverDot />
         <Marker position={[BASE.lat, BASE.lng]} icon={ICONS.base()} interactive={false} keyboard={false} />
-        {mode !== 'rescue' ? <Marker position={[BASE.lat, BASE.lng]} icon={labelIcon('Base · Abrigo', 'a', 20, -11)} interactive={false} keyboard={false} /> : null}
+        {mode !== 'rescue' ? <Marker position={[BASE.lat, BASE.lng]} icon={labelIcon(baseLabel, 'a', 20, -11)} interactive={false} keyboard={false} /> : null}
         <MapEvents />
         <FocusController />
+        <FollowPosition />
         <MarsScale />
         <ZoomControl position="bottomright" />
       </MapContainer>

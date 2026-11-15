@@ -3,6 +3,9 @@
  * Mudanças aqui afetam todo mundo: só o orquestrador altera este arquivo.
  */
 
+import type { Lang } from '@/config/i18n';
+export type { Lang } from '@/config/i18n';
+
 export interface LatLng {
   lat: number;
   lng: number;
@@ -47,6 +50,9 @@ export interface Hazard {
   /** Uma frase: o que fazer. */
   advice: string;
   source: string;
+  /** Versões em inglês (padrão do site). */
+  nameEn?: string;
+  adviceEn?: string;
 }
 
 export interface Landmark {
@@ -57,6 +63,41 @@ export interface Landmark {
   kind: 'delta' | 'landing' | 'channel' | 'breach' | 'crater' | 'unit' | 'poi';
   description: string;
   source: string;
+  nameEn?: string;
+  descriptionEn?: string;
+}
+
+/** Parada científica: lugar onde vale coletar/observar algo no caminho (objetivo científico do desafio). */
+export interface ScienceTarget {
+  id: string;
+  name: string;
+  nameEn?: string;
+  lat: number;
+  lng: number;
+  kind: 'carbonate' | 'clay' | 'olivine' | 'sample-site' | 'stratigraphy' | 'boulder' | 'other';
+  /** Uma ou duas frases: por que importa para a ciência (ex.: possível bioassinatura em carbonatos). */
+  why: string;
+  whyEn?: string;
+  /** O que fazer lá: ex. "Coletar amostra de núcleo", "Fotografar camadas". */
+  task: string;
+  taskEn?: string;
+  /** Minutos estimados de trabalho na parada (entra no tempo e no O₂ da rota). */
+  workMin: number;
+  priority: 1 | 2 | 3; // 1 = alta
+  /** Fonte do dado (ex.: 'CRISM FRT00005C5E', 'Perseverance sample Wildcat Ridge'). */
+  source: string;
+  /** Foto real associada (id em photos.json), se houver. */
+  photoId?: string;
+}
+
+export interface ScienceStopOnRoute {
+  target: ScienceTarget;
+  /** Índice do ponto da rota mais próximo do alvo. */
+  index: number;
+  /** Distância ao longo da rota até esse ponto (m). */
+  alongM: number;
+  /** Distância lateral do alvo à rota (m). */
+  offsetM: number;
 }
 
 export interface RoverPhoto {
@@ -68,6 +109,7 @@ export interface RoverPhoto {
   camera: string;
   caption: string;
   credit: 'NASA/JPL-Caltech';
+  captionEn?: string;
   /** true se a posição foi associada à mão (feed sem lat/lon). */
   approximatePosition: boolean;
 }
@@ -94,6 +136,20 @@ export interface MapData {
   perseveranceTrack: [number, number][]; // [lat,lng][]
   photos: RoverPhoto[];
   shelters: Shelter[];
+  /** public/data/science-targets.json (opcional: [] se não existir). */
+  scienceTargets: ScienceTarget[];
+}
+
+/** Opções extras de planejamento (último parâmetro opcional das funções do core). */
+export interface PlanOptions {
+  /** Idioma dos textos gerados (labels, alertas, dossiê). Padrão: 'en'. */
+  lang?: Lang;
+  /** Paradas intermediárias, na ordem: a rota passa por todas antes do destino. */
+  via?: LatLng[];
+  /** Minutos de trabalho parado em cada `via` (mesmo tamanho de via); somam ao tempo/O₂. */
+  viaWorkMin?: number[];
+  /** Id do ScienceTarget de cada `via` (mesmo tamanho de via); vai para route.stops[].targetId. */
+  viaTargetIds?: (string | undefined)[];
 }
 
 export type TimeOfDay = 'day' | 'night';
@@ -144,6 +200,8 @@ export interface Route {
   batteryRemainingPct: number;
   maxSlopeDeg: number;
   alerts: Alert[];
+  /** Paradas (via) da rota: índice do ponto e minutos de trabalho incluídos em durationMin/O₂. */
+  stops?: { index: number; workMin: number; targetId?: string }[];
 }
 
 export interface DossierEntry {
@@ -191,13 +249,15 @@ export interface OxygenMargin {
  * API pública do core (src/core/index.ts). A UI e a IA SÓ calculam por aqui.
  */
 export interface CoreApi {
-  planRoutes(from: LatLng, to: LatLng, data: MapData, suit: SuitState, tod: TimeOfDay): Route[]; // [safest, balanced, fastest]
-  routeFromPolyline(points: LatLng[], data: MapData, suit: SuitState, tod: TimeOfDay): Route; // rota desenhada à mão
-  buildDossier(route: Route, data: MapData, tod: TimeOfDay): Dossier;
-  evaluateRoute(route: Route, data: MapData, suit: SuitState, tod: TimeOfDay): Alert[];
+  planRoutes(from: LatLng, to: LatLng, data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions): Route[]; // [safest, balanced, fastest]
+  routeFromPolyline(points: LatLng[], data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions): Route; // rota desenhada à mão
+  buildDossier(route: Route, data: MapData, tod: TimeOfDay, opts?: PlanOptions): Dossier;
+  evaluateRoute(route: Route, data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions): Alert[];
   oxygenMargin(route: Route, suit: SuitState): OxygenMargin;
   pointOfNoReturn(route: Route, suit: SuitState): PointOfNoReturn | null;
-  computeRescue(position: LatLng, progressIdx: number, route: Route | null, data: MapData, suit: SuitState, tod: TimeOfDay): RescuePlan;
+  computeRescue(position: LatLng, progressIdx: number, route: Route | null, data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions): RescuePlan;
   nearestPhoto(at: LatLng, data: MapData): RoverPhoto | null;
   distanceM(a: LatLng, b: LatLng): number;
+  /** Alvos científicos a até radiusM (padrão 400 m) da rota, ordenados ao longo dela. */
+  scienceAlongRoute(route: Route, data: MapData, radiusM?: number): ScienceStopOnRoute[];
 }

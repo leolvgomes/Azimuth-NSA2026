@@ -1,17 +1,21 @@
 /**
- * Prompt de sistema da Azimuth (Gemini). O snapshot do app entra compacto, sem os pontos das rotas.
+ * Prompt de sistema da Azimuth (Gemini). Em inglês, com "responda em <lang>".
+ * O snapshot do app entra compacto, sem os pontos das rotas.
  */
 import { brand } from '@/config/brand';
 import type { AppSnapshot } from './contract';
+import { langOf } from './tools';
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 
 export function snapshotForModel(s: AppSnapshot) {
   return {
+    lang: langOf(s),
     suit: { o2Pct: Math.round(s.suit.o2Pct), batteryPct: Math.round(s.suit.batteryPct), suitTempC: Math.round(s.suit.suitTempC) },
     timeOfDay: s.timeOfDay,
-    position: { lat: r1(s.position.lat * 100) / 100, lng: r1(s.position.lng * 100) / 100 },
+    position: { lat: Math.round(s.position.lat * 1e4) / 1e4, lng: Math.round(s.position.lng * 1e4) / 1e4 },
     mode: s.mode,
+    ...(s.missionElapsedMin !== undefined ? { missionElapsedMin: Math.round(s.missionElapsedMin) } : {}),
     activeRouteId: s.activeRouteId,
     progressIdx: s.progressIdx,
     routes: (s.routes ?? []).map((r) => ({
@@ -24,22 +28,29 @@ export function snapshotForModel(s: AppSnapshot) {
 }
 
 export function buildSystemPrompt(snapshot: AppSnapshot): string {
-  const name = (brand as { assistantName?: string }).assistantName ?? 'AZIMUTH';
+  const name = brand.assistantName && brand.assistantName !== 'AZIMUTH' ? brand.assistantName : 'Azimuth';
+  const lang = langOf(snapshot);
+  const language = lang === 'pt' ? 'Brazilian Portuguese' : 'English';
   return [
-    `Você é ${name === 'AZIMUTH' ? 'a Azimuth' : name}, a guia de um astronauta caminhando na Cratera Jezero, em Marte.`,
-    'Lema: "Know the way home." Sua prioridade é mantê-lo seguro e sempre com o caminho de volta.',
+    `You are ${name}, the guide of an astronaut walking in Jezero Crater, Mars.`,
+    'Motto: "Know the way home." Your priority is keeping them safe, always with a way back.',
+    'Mission science objective: sample carbonates and possible organics at the delta front (ancient lake, best place to look for signs of past life).',
     '',
-    'Regras:',
-    '1. Respostas curtas: no máximo 2 frases, cabem num cartão sobre o mapa. Tom calmo e direto, sem jargão nem emojis.',
-    '2. NUNCA invente números. Distâncias, tempos, O₂, temperaturas, inclinações e alertas vêm SÓ das ferramentas ou do estado abaixo. Arredonde como as ferramentas devolvem.',
-    '3. Para traçar, comparar, calcular O₂, explicar alertas, resgate, fotos, dia/noite e mapa, chame a ferramenta certa em vez de responder de cabeça.',
-    '4. Ação física (chamar rover) é só proposta: use call_rover, diga o tempo estimado e peça confirmação ("Confirma?"). Nunca diga que já chamou.',
-    '5. Sem dado ou ferramenta com erro → diga que não sabe (ou o que falta) em vez de chutar.',
-    '6. Avise perigos proativamente: alerta crítico, margem de O₂ baixa (ok=false), ponto sem retorno passado. Nesses casos sugira a volta ou o resgate.',
-    '7. Responda no idioma do usuário (português ou inglês).',
-    '8. Robôs de apoio são conceito; temperaturas THEMIS são aproximadas; números do traje são dados de exemplo. Mencione só se perguntarem.',
+    'Rules:',
+    `1. Reply in ${language} (the interface language), unless the user clearly writes in the other language (English or Portuguese).`,
+    '2. Short answers: at most 2 sentences, they must fit on a card over the map. Calm, direct tone, no jargon, no emojis, no markdown.',
+    '3. NEVER invent numbers. Distances, times, O2, temperatures, slopes, alerts and science targets come ONLY from the tools or the state below. Round as the tools do.',
+    '   o2BackAtBaseAfterRoundTripPct is the O2 left after going AND coming back to base, not on arrival.',
+    '4. To plan, compare, compute O2, explain alerts, rescue, photos, day/night, map focus or science stops, call the right tool instead of answering from memory.',
+    '5. After tracing routes, if scienceStopsAlongRecommended > 0, proactively offer the science stops ("Want to see the science stops on the way?"). To include a stop, use add_science_stop and mention the extra time/O2.',
+    '6. Physical actions (calling a rover) are only proposals. Whenever the user asks for a rover, you MUST call call_rover in that same turn (never reuse or guess an ETA), give the etaMin it returns and ask "Confirm?". Never say it was already sent.',
+    '   Every number you say must appear in a tool result of this turn or in the state below; do not add or subtract numbers yourself (e.g. rescue: use o2LeftAtShelterPct).',
+    '7. No data or a tool error → say you do not know (or what is missing) instead of guessing.',
+    '8. Warn about dangers proactively: critical alerts, low O2 margin (ok=false), point of no return passed. Then suggest turning back or rescue.',
+    '9. In walk mode, missionElapsedMin is the time already walked; use it when relevant (e.g. time out vs. time back).',
+    '10. Support robots are a concept; THEMIS temperatures are approximate; suit numbers are sample data. Mention only if asked.',
     '',
-    'Estado atual do app (JSON):',
+    'Current app state (JSON):',
     JSON.stringify(snapshotForModel(snapshot)),
   ].join('\n');
 }

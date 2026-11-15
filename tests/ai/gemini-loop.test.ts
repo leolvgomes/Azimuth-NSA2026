@@ -32,7 +32,7 @@ const flat = (name: string, v: number) => ({
 });
 const data: MapData = {
   grids: { slope: flat('slope', 1), tempDay: flat('tempDay', -20), tempNight: flat('tempNight', -80) },
-  hazards: [], landmarks: [], perseveranceTrack: [], photos: [],
+  hazards: [], landmarks: [], perseveranceTrack: [], photos: [], scienceTargets: [],
   shelters: [{ id: 'base', name: 'Base', lat: BASE.lat, lng: BASE.lng }],
 };
 

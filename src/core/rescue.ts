@@ -1,16 +1,18 @@
 /**
  * Modo Resgate: rota de volta (A* perfil safest) até o abrigo mais próximo em tempo de caminhada.
  */
+import { DEFAULT_LANG } from '@/config/i18n';
 import { BASE } from '@/config/mission';
 import { suitConfig } from '@/config/suit';
 import { getFeatures } from './costMap';
 import { distanceM } from './geo';
 import { o2UsedAt, pointOfNoReturn, returnNeed } from './oxygen';
 import { PROFILE_WEIGHTS, buildRoute, cellsToPolyline, solveCells } from './routes';
-import type { LatLng, MapData, PointOfNoReturn, RescuePlan, Route, RoverPhoto, Shelter, SuitState, TimeOfDay } from './types';
+import type { LatLng, MapData, PlanOptions, PointOfNoReturn, RescuePlan, Route, RoverPhoto, Shelter, SuitState, TimeOfDay } from './types';
 
 export function computeRescue(
   position: LatLng, progressIdx: number, route: Route | null, data: MapData, suit: SuitState, tod: TimeOfDay,
+  opts?: PlanOptions,
 ): RescuePlan {
   const shelters: Shelter[] = data.shelters?.length
     ? data.shelters
@@ -24,7 +26,7 @@ export function computeRescue(
     const line = close
       ? [position, s]
       : cellsToPolyline(f, solveCells(f, PROFILE_WEIGHTS.safest, tod, position, s), position, s);
-    const r = buildRoute(line, 'return', data, suit, tod);
+    const r = buildRoute(line, 'return', data, suit, tod, opts?.lang ?? DEFAULT_LANG);
     if (!best || r.durationMin < best.route.durationMin) best = { shelter: s, route: r };
   }
   const { shelter, route: returnRoute } = best!;

@@ -12,6 +12,7 @@ import { buildTrack } from './track';
 import { buildDerived } from './derived';
 import { buildLayers } from './layers';
 import { buildPhotos } from './photos';
+import { buildScience } from './science';
 
 const steps: [string, () => Promise<unknown>][] = [
   ['ctx', buildCtx],
@@ -22,6 +23,7 @@ const steps: [string, () => Promise<unknown>][] = [
   ['derived', buildDerived],
   ['layers', buildLayers],
   ['photos', buildPhotos],
+  ['science', buildScience],
 ];
 
 async function main() {

@@ -1,11 +1,14 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { useAzimuth, type RobotRole } from '@/state/store';
-import { bearing, fmtDuration, fmtKm, fmtPct } from '@/lib/format';
+import { bearing, fmtDuration, fmtKm, fmtPct, upper } from '@/lib/format';
+import { useT } from '@/lib/useT';
+import type { I18nKey } from '@/lib/i18n';
 import { Hud } from '@/components/ui/Hud';
 import { AlertBox } from '@/components/ui/AlertBox';
 
 export function ReturnPanel() {
+  const { t } = useT();
   const plan = useAzimuth((s) => s.rescuePlan);
   const returning = useAzimuth((s) => s.returning);
   const arrived = useAzimuth((s) => s.arrived);
@@ -16,40 +19,40 @@ export function ReturnPanel() {
     return (
       <Hud style={{ width: 400 }}>
         <div className="label" style={{ color: 'var(--alert)' }}>
-          ROTA DE VOLTA
+          {t('returnRoute')}
         </div>
-        <div style={{ marginTop: 10, fontSize: 13, color: 'var(--text-dim)' }}>Calculando a rota até o abrigo…</div>
+        <div style={{ marginTop: 10, fontSize: 13, color: 'var(--text-dim)' }}>{t('computingReturn')}</div>
       </Hud>
     );
   }
   const dir = bearing(plan.from, plan.shelter);
-  const pnrText = plan.pointOfNoReturn == null ? '—' : plan.passedPointOfNoReturn ? 'ultrapassado' : 'não ultrapassado';
+  const pnrText = plan.pointOfNoReturn == null ? '—' : plan.passedPointOfNoReturn ? t('passed') : t('notPassed');
 
   return (
     <Hud style={{ width: 400 }}>
       <div className="label" style={{ color: 'var(--alert)' }}>
-        ROTA DE VOLTA
+        {t('returnRoute')}
       </div>
       <div className="f-display" style={{ fontSize: 30, letterSpacing: 4, marginTop: 10 }}>
-        {fmtKm(plan.returnRoute.distanceM).toUpperCase()}
+        {upper(fmtKm(plan.returnRoute.distanceM))}
       </div>
       <div className="f-mono" style={{ fontSize: 14, color: 'var(--text-dim)', marginTop: 6 }}>
-        ≈ {fmtDuration(plan.etaMin)} até o abrigo · rumo {Math.round(dir.deg)}° {dir.cardinal}
+        ≈ {fmtDuration(plan.etaMin)} {t('toShelter')} · {t('heading')} {Math.round(dir.deg)}° {dir.cardinal}
       </div>
       <div className="kv" style={{ marginTop: 14 }}>
-        <span>O₂ necessário (com margem)</span>
+        <span>{t('o2Needed')}</span>
         <b>{fmtPct(plan.o2NeededPct)}</b>
       </div>
       <div className="kv">
-        <span>O₂ disponível</span>
+        <span>{t('o2Available')}</span>
         <b className={plan.ok ? 'a' : 'r'}>{fmtPct(plan.o2AvailablePct)}</b>
       </div>
       <div className="kv">
-        <span>Ponto sem retorno</span>
+        <span>{t('pnr')}</span>
         <b className={plan.passedPointOfNoReturn ? 'r' : ''}>{pnrText}</b>
       </div>
       <div className="kv">
-        <span>Abrigo</span>
+        <span>{t('shelter')}</span>
         <b>{plan.shelter.name}</b>
       </div>
       {!plan.ok ? (
@@ -57,9 +60,9 @@ export function ReturnPanel() {
           <AlertBox
             alert={{
               severity: 'critical',
-              title: 'O₂ curto para a volta',
-              detail: `Precisa de ${fmtPct(plan.o2NeededPct)} e tem ${fmtPct(plan.o2AvailablePct)}.`,
-              action: 'Chame o robô de resgate agora e siga a rota de volta.',
+              title: t('o2Short'),
+              detail: t('o2ShortDetail', { need: fmtPct(plan.o2NeededPct), have: fmtPct(plan.o2AvailablePct) }),
+              action: t('o2ShortAction'),
             }}
           />
         </div>
@@ -67,15 +70,15 @@ export function ReturnPanel() {
       {arrived ? (
         <>
           <div className="f-display" style={{ marginTop: 14, fontSize: 13, letterSpacing: 3, color: 'var(--accent)' }}>
-            VOCÊ CHEGOU AO ABRIGO
+            {t('arrivedShelter')}
           </div>
           <button type="button" className="btn block" style={{ marginTop: 10 }} onClick={exitRescue}>
-            SAIR DO RESGATE
+            {t('exitRescue')}
           </button>
         </>
       ) : (
         <button type="button" className="btn rescue block" style={{ marginTop: 14 }} onClick={startReturn} disabled={returning}>
-          {returning ? 'VOLTANDO…' : 'INICIAR VOLTA'}
+          {returning ? t('returning') : t('startReturn')}
         </button>
       )}
     </Hud>
@@ -85,20 +88,21 @@ export function ReturnPanel() {
 function useNow(ms: number) {
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    const t = setInterval(() => setNow(Date.now()), ms);
-    return () => clearInterval(t);
+    const id = setInterval(() => setNow(Date.now()), ms);
+    return () => clearInterval(id);
   }, [ms]);
   return now;
 }
 
-const ROBOTS: { role: RobotRole; name: string }[] = [
-  { role: 'rescue', name: 'Transporte de resgate' },
-  { role: 'scout', name: 'Batedor' },
-  { role: 'relay', name: 'Relé de comunicação' },
+const ROBOTS: { role: RobotRole; key: I18nKey }[] = [
+  { role: 'rescue', key: 'robotRescue' },
+  { role: 'scout', key: 'robotScout' },
+  { role: 'relay', key: 'robotRelay' },
 ];
 
 /** Robôs de apoio (CONCEITO): animação simples, chamada sempre com confirmação. */
 export function RobotsPanel() {
+  const { t } = useT();
   const robot = useAzimuth((s) => s.robot);
   const plan = useAzimuth((s) => s.rescuePlan);
   const pending = useAzimuth((s) => s.pendingConfirm);
@@ -107,19 +111,19 @@ export function RobotsPanel() {
   const request = (role: RobotRole) => {
     // ETA conceitual: robô ~4× mais rápido que a caminhada de volta (calculada pelo core)
     const eta = Math.max(2, Math.round((plan?.etaMin ?? 24) / 4));
-    useAzimuth.setState({ pendingConfirm: { role, reason: 'Pedido no painel de resgate', etaMin: eta } });
+    useAzimuth.setState({ pendingConfirm: { role, reason: t('robotManualReason'), etaMin: eta } });
   };
 
   return (
-    <Hud title="APOIO · ROBÔS" style={{ width: 380 }}>
+    <Hud title={t('robots')} style={{ width: 380 }}>
       {ROBOTS.map((r, i) => {
         const active = robot?.role === r.role;
         const left = active ? Math.max(0, robot!.etaMin - (now - robot!.startedAt) / 2000) : null;
-        const status = active ? (left! <= 0 ? 'CHEGOU' : 'EM ROTA') : r.role === 'relay' ? 'PARADO' : 'PRONTO';
+        const status = active ? (left! <= 0 ? t('arrivedUp') : t('enRoute')) : r.role === 'relay' ? t('idle') : t('ready');
         return (
           <div key={r.role} className="flex justify-between items-center gap-3" style={{ padding: '10px 0', borderBottom: i < ROBOTS.length - 1 ? '1px solid #2A1410' : 'none' }}>
             <div>
-              <div style={{ fontSize: 13, fontWeight: 600 }}>{r.name}</div>
+              <div style={{ fontSize: 13, fontWeight: 600 }}>{t(r.key)}</div>
               <div className="label" style={{ marginTop: 3, color: active ? 'var(--alert)' : undefined }}>
                 {status}
               </div>
@@ -134,7 +138,7 @@ export function RobotsPanel() {
               </div>
             ) : (
               <button type="button" className="mini r" onClick={() => request(r.role)} disabled={!!pending}>
-                CHAMAR
+                {t('call')}
               </button>
             )}
           </div>
@@ -142,17 +146,17 @@ export function RobotsPanel() {
       })}
       <div className="flex justify-between items-center" style={{ padding: '10px 0', borderTop: '1px solid #2A1410' }}>
         <div>
-          <div style={{ fontSize: 13, fontWeight: 600 }}>Farol · abrigo</div>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>{t('beacon')}</div>
           <div className="label" style={{ marginTop: 3 }}>
-            ATIVO
+            {t('active')}
           </div>
         </div>
         <div className="f-mono" style={{ fontSize: 13 }}>
-          sinal ok
+          {t('signalOk')}
         </div>
       </div>
       <div className="label" style={{ marginTop: 10, color: 'var(--text-faint)' }}>
-        CONCEITO · ANIMAÇÃO NO DEMO · CONFIRMAÇÃO OBRIGATÓRIA
+        {t('robotsConcept')}
       </div>
     </Hud>
   );

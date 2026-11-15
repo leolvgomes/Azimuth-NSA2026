@@ -3,7 +3,7 @@ import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { BASE, DEMO_TARGET } from '@/config/mission';
 import { initialSuitState } from '@/config/suit';
-import { buildDossier, computeRescue, oxygenMargin, planRoutes, pointOfNoReturn } from '@/core';
+import { buildDossier, computeRescue, oxygenMargin, planRoutes, pointOfNoReturn, scienceAlongRoute } from '@/core';
 import { loadMapData } from '@/data/loadMapData';
 
 const has = existsSync(join(process.cwd(), 'public', 'data', 'grids', 'slope.json'));
@@ -31,6 +31,15 @@ describe.skipIf(!has)('integração com public/data', () => {
         const k = Math.floor(r.points.length / 2);
         const plan = computeRescue(r.points[k], k, r, data, { ...suit, o2Pct: 50 }, tod);
         lines.push(`  resgate: ${plan.shelter.name} ETA ${plan.etaMin.toFixed(0)} min, O2 ${plan.o2NeededPct.toFixed(1)}% ok=${plan.ok}`);
+        const sci = scienceAlongRoute(routes[0], data);
+        lines.push(`  science (safest, 400 m): ${sci.map((s) => `${s.target.id}@${s.alongM.toFixed(0)}m/${s.offsetM.toFixed(0)}m`).join(', ') || '—'}`);
+        const t = data.scienceTargets[0];
+        if (t) {
+          const v = planRoutes(BASE, DEMO_TARGET, data, suit, tod, { via: [t], viaWorkMin: [t.workMin] });
+          expect(v[0].stops).toHaveLength(1);
+          lines.push(`  via ${t.id} (+${t.workMin} min): ` + v.map((r) =>
+            `${r.label} ${(r.distanceM / 1000).toFixed(2)} km ${r.durationMin.toFixed(0)} min O2 left ${r.o2RemainingPct.toFixed(1)}% alerts ${r.alerts.length}`).join(' | '));
+        }
       }
       console.log(lines.join('\n'));
     }

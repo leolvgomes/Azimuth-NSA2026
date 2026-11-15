@@ -111,7 +111,7 @@ describe('alertas', () => {
     });
     const data: MapData = {
       grids: { slope: ph('slope', 0), tempDay: ph('tempDay', -20), tempNight: ph('tempNight', -80) },
-      hazards: [], landmarks: [], perseveranceTrack: [], photos: [], shelters: [],
+      hazards: [], landmarks: [], perseveranceTrack: [], photos: [], shelters: [], scienceTargets: [],
     };
     const rs = planRoutes({ lat: 18.4447, lng: 77.4508 }, { lat: 18.4782, lng: 77.4116 }, data, fullSuit, 'day');
     expect(rs.length).toBe(3);
