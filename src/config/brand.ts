@@ -6,6 +6,8 @@
 export const brand = {
   name: 'AZIMUTH',
   fullName: 'Azimuth: Interplanetary Guide',
+  /** Título da aba do navegador (curto, ao lado do ícone src/app/icon.svg). */
+  tabTitle: 'Azimuth',
   tagline: 'Know the way home.',
   subtitle: 'O caminho mais seguro em Jezero. E sempre o caminho de volta.',
   assistantName: 'AZIMUTH',

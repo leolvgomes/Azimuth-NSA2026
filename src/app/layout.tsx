@@ -9,7 +9,7 @@ const body = Montserrat({ subsets: ['latin'], variable: '--font-body', display: 
 const mono = JetBrains_Mono({ subsets: ['latin'], variable: '--font-mono', display: 'swap' });
 
 export const metadata: Metadata = {
-  title: `${brand.fullName} · ${brand.tagline}`,
+  title: brand.tabTitle,
   description: `${brand.text.en.description} ${brand.challenge}.`,
 };
 
