@@ -1,0 +1,110 @@
+[
+  {
+    "id": "octavia-e-butler-landing",
+    "name": "Octavia E. Butler Landing",
+    "lat": 18.4447,
+    "lng": 77.4508,
+    "kind": "landing",
+    "description": "Local de pouso do Perseverance (18 fev 2021). Base e abrigo da missão.",
+    "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 13: 18.44463, 77.45089)"
+  },
+  {
+    "id": "jezero-delta",
+    "name": "Delta de Jezero",
+    "lat": 18.50244,
+    "lng": 77.36304,
+    "kind": "delta",
+    "description": "Delta em leque formado por um rio que desaguava no antigo lago da cratera; alvo principal de amostras.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
+  },
+  {
+    "id": "delta-front",
+    "name": "Frente do delta (Hawksbill Gap)",
+    "lat": 18.4571,
+    "lng": 77.4088,
+    "kind": "delta",
+    "description": "Base da rampa por onde o Perseverance subiu a frente do delta (sols 437-470). Destino do demo.",
+    "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 437)"
+  },
+  {
+    "id": "enchanted-lake",
+    "name": "Enchanted Lake",
+    "lat": 18.4494,
+    "lng": 77.4052,
+    "kind": "poi",
+    "description": "Afloramento na base da escarpa do delta, primeira parada do rover na frente do delta (~sol 415).",
+    "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sol 415)"
+  },
+  {
+    "id": "three-forks",
+    "name": "Depósito Three Forks",
+    "lat": 18.4514,
+    "lng": 77.4013,
+    "kind": "poi",
+    "description": "Onde o Perseverance deixou 10 tubos de amostras para uma futura missão de retorno (sols 586-653).",
+    "source": "NASA/JPL-Caltech Perseverance localized waypoints (MMGIS M20_waypoints.json) (sols 592-632)"
+  },
+  {
+    "id": "neretva-vallis",
+    "name": "Neretva Vallis",
+    "lat": 18.59244,
+    "lng": 77.20909,
+    "kind": "channel",
+    "description": "Vale do antigo rio que alimentava o lago de Jezero, entrando pelo oeste.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
+  },
+  {
+    "id": "western-breach",
+    "name": "Brecha oeste",
+    "lat": 18.51864,
+    "lng": 77.24755,
+    "kind": "breach",
+    "description": "Onde Neretva Vallis rompe a borda da cratera; paredes íngremes.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
+  },
+  {
+    "id": "belva",
+    "name": "Cratera Belva",
+    "lat": 18.4835,
+    "lng": 77.3783,
+    "kind": "crater",
+    "description": "Cratera de ~1 km no topo do delta que expõe camadas do delta.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
+  },
+  {
+    "id": "seitah",
+    "name": "Séítah",
+    "lat": 18.424,
+    "lng": 77.427,
+    "kind": "unit",
+    "description": "Unidade com cristas rochosas (olivina) e dunas de areia, a sudoeste do pouso. Explorada pela borda.",
+    "source": "Approximate centre; NASA/JPL Perseverance mission reports + CTX"
+  },
+  {
+    "id": "maaz",
+    "name": "Máaz",
+    "lat": 18.447,
+    "lng": 77.462,
+    "kind": "unit",
+    "description": "Formação do assoalho da cratera ao redor do pouso: rochas vulcânicas planas, terreno bom para caminhar.",
+    "source": "Approximate label position; NASA/JPL Perseverance mission reports"
+  },
+  {
+    "id": "kodiak",
+    "name": "Kodiak",
+    "lat": 18.43948,
+    "lng": 77.40819,
+    "kind": "poi",
+    "description": "Morro testemunho (butte) remanescente do delta, ~2 km a sudoeste da frente do delta.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; identification approximate"
+  },
+  {
+    "id": "west-rim",
+    "name": "Borda oeste de Jezero",
+    "lat": 18.35677,
+    "lng": 77.26982,
+    "kind": "crater",
+    "description": "Borda da cratera (45 km de diâmetro), ~600 m acima do assoalho.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline + CTX DTM"
+  }
+]
