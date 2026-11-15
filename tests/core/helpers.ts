@@ -31,6 +31,7 @@ export function mapData(opts: {
     perseveranceTrack: [],
     photos: [],
     shelters: opts.shelters ?? [{ id: 'base', name: 'Base', ...at(50, 5) }],
+    scienceTargets: [],
   };
 }
 

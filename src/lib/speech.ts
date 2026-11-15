@@ -25,11 +25,11 @@ export function getRecognizerCtor(): RecognizerCtor | null {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition ?? null;
 }
 
-export function listen(onText: (text: string, final: boolean) => void, onEnd: () => void): Recognizer | null {
+export function listen(onText: (text: string, final: boolean) => void, onEnd: () => void, locale = 'en-US'): Recognizer | null {
   const Ctor = getRecognizerCtor();
   if (!Ctor) return null;
   const rec = new Ctor();
-  rec.lang = 'pt-BR';
+  rec.lang = locale;
   rec.interimResults = true;
   rec.continuous = false;
   rec.onresult = (e) => {
@@ -51,12 +51,12 @@ export function listen(onText: (text: string, final: boolean) => void, onEnd: ()
   return rec;
 }
 
-export function speak(text: string) {
+export function speak(text: string, locale?: string) {
   if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
   try {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
-    u.lang = /\b(the|you|route|oxygen)\b/i.test(text) ? 'en-US' : 'pt-BR';
+    u.lang = locale ?? (/\b(the|you|route|oxygen)\b/i.test(text) ? 'en-US' : 'pt-BR');
     u.rate = 1.02;
     window.speechSynthesis.speak(u);
   } catch {

@@ -1,15 +1,18 @@
 /**
- * Planejamento: 3 perfis (safest, balanced, fastest) com A* sobre o mapa de custo,
- * suavização (Douglas-Peucker que não atravessa célula bloqueada), amostragem e alertas.
+ * Planning: 3 profiles (safest, balanced, fastest) with A* on the cost map (one A* per leg when there
+ * are via stops), smoothing (Douglas-Peucker that never cuts a blocked cell), sampling and alerts.
  */
+import { DEFAULT_LANG, type Lang } from '@/config/i18n';
 import { suitConfig } from '@/config/suit';
 import { evaluateRoute } from './alerts';
 import { returnNeed } from './oxygen';
 import { astar } from './astar';
 import { buildCostField, getFeatures, type CostFeatures, type ProfileWeights } from './costMap';
-import { cellCenter, cellOf, toXY } from './geo';
+import { cellCenter, cellOf, distanceM, distPointSegXY, makeProj, toXY } from './geo';
 import { assembleRoute, samplePoints } from './sampling';
-import type { LatLng, MapData, Route, RouteProfile, SuitState, TimeOfDay } from './types';
+import type {
+  LatLng, MapData, PlanOptions, Route, RouteProfile, RoutePoint, SuitState, TimeOfDay,
+} from './types';
 
 export const PROFILE_WEIGHTS: Record<'safest' | 'balanced' | 'fastest', ProfileWeights> = {
   /** Evita perigo e frio, gosta de terreno plano e da trilha do Perseverance. */
@@ -19,12 +22,12 @@ export const PROFILE_WEIGHTS: Record<'safest' | 'balanced' | 'fastest', ProfileW
   fastest: { wSlope: 0.1, wHazard: 0.2, wClear: 0, wCold: 0, wHeat: 0, wTrack: 0, nodataPenalty: 0 },
 };
 
-export const PROFILE_LABEL: Record<RouteProfile, string> = {
-  safest: 'Mais segura',
-  balanced: 'Equilibrada',
-  fastest: 'Mais rápida',
-  manual: 'Desenhada',
-  return: 'Volta ao abrigo',
+export const PROFILE_LABEL: Record<Lang, Record<RouteProfile, string>> = {
+  en: { safest: 'Safest', balanced: 'Balanced', fastest: 'Fastest', manual: 'Drawn', return: 'Back to shelter' },
+  pt: {
+    safest: 'Mais segura', balanced: 'Equilibrada', fastest: 'Mais rápida', manual: 'Desenhada',
+    return: 'Volta ao abrigo',
+  },
 };
 
 /** Resolve A* entre dois pontos para um perfil. Retorna as células do caminho. */
@@ -136,13 +139,17 @@ export function similar(f: CostFeatures, a: number[], b: number[]): boolean {
   return Math.min(overlap(f, a, b), overlap(f, b, a)) > 0.85;
 }
 
-function penaltyFor(f: CostFeatures, paths: number[][], mult: number): Float32Array {
+/** Corridor penalty around paths; never around the waypoints themselves (start, vias, end). */
+function penaltyFor(f: CostFeatures, paths: number[][], mult: number, wps: LatLng[] = []): Float32Array {
   const rad = Math.max(2, Math.round(350 / Math.min(f.cellWM, f.cellHM)));
   const p = new Float32Array(f.width * f.height);
   for (const path of paths) {
     const m = corridorMask(f, path, rad);
     for (let i = 0; i < m.length; i++) if (m[i]) p[i] = mult;
   }
+  const wr = Math.max(2, Math.round(300 / Math.min(f.cellWM, f.cellHM)));
+  const keep = corridorMask(f, wps.map((w) => { const c = cellOf(f, w.lat, w.lng); return c.row * f.width + c.col; }), wr);
+  for (let i = 0; i < keep.length; i++) if (keep[i]) p[i] = 0;
   return p;
 }
 
@@ -171,96 +178,204 @@ function pathLengthM(f: CostFeatures, cells: number[]): number {
   return L;
 }
 
-/** Constrói uma Route completa (pontos a cada ~50 m, tempo, O₂, alertas). */
+/** A path made of legs (one A* per leg: from → via… → to). */
+type Legs = number[][];
+
+/** A* for each leg between consecutive waypoints. */
+export function solveLegs(
+  f: CostFeatures, w: ProfileWeights, tod: TimeOfDay, wps: LatLng[], penalty?: Float32Array,
+): Legs {
+  const legs: Legs = [];
+  for (let i = 1; i < wps.length; i++) legs.push(solveCells(f, w, tod, wps[i - 1], wps[i], penalty));
+  return legs;
+}
+
+/** Concatenated cells of all legs (junction cells not repeated). */
+function flat(legs: Legs): number[] {
+  const out: number[] = [];
+  for (const leg of legs) {
+    for (let k = 0; k < leg.length; k++) {
+      if (k === 0 && out.length && out[out.length - 1] === leg[0]) continue;
+      out.push(leg[k]);
+    }
+  }
+  return out;
+}
+
+/** Smoothed polyline over all legs, passing exactly through every waypoint. */
+export function legsToPolyline(f: CostFeatures, legs: Legs, wps: LatLng[]): LatLng[] {
+  const out: LatLng[] = [];
+  legs.forEach((leg, i) => {
+    const pl = cellsToPolyline(f, leg, wps[i], wps[i + 1]);
+    out.push(...(out.length ? pl.slice(1) : pl));
+  });
+  return out.length ? out : [...wps];
+}
+
+export interface StopSpec {
+  via: LatLng[];
+  workMin: number[];
+  targetIds?: (string | undefined)[];
+}
+
+function stopSpec(opts?: PlanOptions): StopSpec | undefined {
+  const via = opts?.via ?? [];
+  if (!via.length) return undefined;
+  return {
+    via,
+    workMin: via.map((_, i) => Math.max(0, opts?.viaWorkMin?.[i] ?? 0)),
+    targetIds: via.map((_, i) => opts?.viaTargetIds?.[i]),
+  };
+}
+
+/** Index of each via on the sampled points (in order, nearest point after the previous stop). */
+function locateStops(points: RoutePoint[], spec: StopSpec): NonNullable<Route['stops']> {
+  const stops: NonNullable<Route['stops']> = [];
+  let from = 0;
+  spec.via.forEach((v, i) => {
+    let best = from;
+    let bestD = Infinity;
+    for (let k = from; k < points.length; k++) {
+      const d = distanceM(points[k], v);
+      if (d < bestD) { bestD = d; best = k; }
+    }
+    const s: { index: number; workMin: number; targetId?: string } = { index: best, workMin: spec.workMin[i] ?? 0 };
+    const tid = spec.targetIds?.[i];
+    if (tid) s.targetId = tid;
+    stops.push(s);
+    from = best;
+  });
+  return stops;
+}
+
+/** Builds a complete Route (points every ≤ ~50 m, time incl. stops, O₂, alerts) in the given language. */
 export function buildRoute(
-  latlngs: LatLng[], profile: RouteProfile, data: MapData, suit: SuitState, tod: TimeOfDay, label = PROFILE_LABEL[profile],
+  latlngs: LatLng[], profile: RouteProfile, data: MapData, suit: SuitState, tod: TimeOfDay,
+  lang: Lang = DEFAULT_LANG, stops?: StopSpec,
 ): Route {
   const pts = samplePoints(latlngs, data, tod);
-  const route = assembleRoute(pts, profile, label, suit);
-  route.alerts = evaluateRoute(route, data, suit, tod);
+  const st = stops && pts.length ? locateStops(pts, stops) : undefined;
+  const route = assembleRoute(pts, profile, PROFILE_LABEL[lang][profile], suit, st);
+  route.alerts = evaluateRoute(route, data, suit, tod, { lang });
   return route;
 }
 
-export function planRoutes(from: LatLng, to: LatLng, data: MapData, suit: SuitState, tod: TimeOfDay): Route[] {
+export function planRoutes(
+  from: LatLng, to: LatLng, data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions,
+): Route[] {
+  const lang: Lang = opts?.lang ?? DEFAULT_LANG;
+  const spec = stopSpec(opts);
+  const wps: LatLng[] = [from, ...(spec?.via ?? []), to];
+  const workMin = (spec?.workMin ?? []).reduce((a, b) => a + b, 0);
   const f = getFeatures(data);
   const W = PROFILE_WEIGHTS;
-  const fastest = solveCells(f, W.fastest, tod, from, to);
+  const fastestL = solveLegs(f, W.fastest, tod, wps);
+  const fastest = flat(fastestL);
   const fastLen = pathLengthM(f, fastest);
-  // "Mais segura" também tem que voltar com O₂: se o desvio for longo demais (O₂ não fecha ida+volta
-  // ou > 1,6× a mais rápida), suaviza os pesos de perigo/inclinação/frio.
+  // The safest route must also make it back on O₂: if the detour is too long (O₂ does not close the
+  // round trip, or > 1.6× the fastest), soften the hazard/slope/cold weights.
   let safeW = W.safest;
-  let safest: number[] = [];
+  let safestL: Legs = [];
   for (const k of SAFEST_SCALES) {
     safeW = scaleWeights(W.safest, k);
-    safest = solveCells(f, safeW, tod, from, to);
-    const len = pathLengthM(f, safest);
+    safestL = solveLegs(f, safeW, tod, wps);
+    const len = pathLengthM(f, flat(safestL));
     const hours = len / 1000 / (suitConfig.walkSpeedKmh * 0.9);
-    const o2 = hours * suitConfig.o2PctPerHour;
-    const o2ok = suit.o2Pct - o2 - returnNeed(o2) >= suitConfig.o2ReservePct;
+    const o2Walk = hours * suitConfig.o2PctPerHour;
+    const o2Work = (workMin / 60) * suitConfig.o2PctPerHour;
+    const o2ok = suit.o2Pct - o2Walk - o2Work - returnNeed(o2Walk) >= suitConfig.o2ReservePct;
     if (len <= 1.6 * fastLen && o2ok) break;
   }
-  // As rotas precisam ser visivelmente diferentes no demo.
-  if (fastest.length > 2 && similar(f, safest, fastest)) {
+  // The 3 options must look different in the demo.
+  if (fastest.length > 2 && similar(f, flat(safestL), fastest)) {
     for (const mult of [1.6, 2.5, 4]) {
-      const alt = solveCells(f, safeW, tod, from, to, penaltyFor(f, [fastest], mult));
-      if (alt.length) safest = alt;
-      if (!similar(f, safest, fastest)) break;
+      const alt = solveLegs(f, safeW, tod, wps, penaltyFor(f, [fastest], mult, wps));
+      if (flat(alt).length && pathLengthM(f, flat(alt)) <= 1.6 * fastLen) safestL = alt;
+      if (!similar(f, flat(safestL), fastest)) break;
     }
   }
-  const mk = (cells: number[], profile: RouteProfile) =>
-    buildRoute(cellsToPolyline(f, cells, from, to), profile, data, suit, tod);
+  const safest = flat(safestL);
+  const mk = (legs: Legs, profile: RouteProfile) =>
+    buildRoute(legsToPolyline(f, legs, wps), profile, data, suit, tod, lang, spec);
   const risk = (r: Route) => r.alerts.reduce((s, a) => s + (a.severity === 'critical' ? 100 : 1), 0);
-  let rs = mk(safest, 'safest');
-  const rf = mk(fastest, 'fastest');
+  let rs = mk(safestL, 'safest');
+  const rf = mk(fastestL, 'fastest');
 
-  // Equilibrada: candidatos (pesos próprios, misturas fastest↔safest, corredores penalizados).
-  // Escolhe, entre os distintos das outras duas, o de menor risco e depois menor distância,
-  // preferindo risco <= o da mais rápida e distância <= a da mais segura (fica "no meio").
+  // Balanced: candidates (own weights, fastest↔safest mixes, penalised corridors). Among those not
+  // identical to the other two: reasonable length, risk <= fastest, visually distinct, lower risk,
+  // shorter.
   const distinct = (p: number[]) => p.length > 2 && !similar(f, p, safest) && !similar(f, p, fastest);
-  const cands: number[][] = [solveCells(f, W.balanced, tod, from, to)];
-  for (const t of [0.5, 0.3, 0.7]) cands.push(solveCells(f, mixWeights(W.fastest, safeW, t), tod, from, to));
-  // variantes geométricas sem o termo de frio (à noite o frio é quase uniforme e esconde alternativas)
+  const cands: Legs[] = [solveLegs(f, W.balanced, tod, wps)];
+  for (const t of [0.5, 0.3, 0.7]) cands.push(solveLegs(f, mixWeights(W.fastest, safeW, t), tod, wps));
+  // geometry variants without the cold term (at night cold is almost uniform and hides alternatives)
   const noCold = (w: ProfileWeights): ProfileWeights => ({ ...w, wCold: 0, wHeat: 0 });
-  for (const w of [W.balanced, mixWeights(W.fastest, safeW, 0.5)]) cands.push(solveCells(f, noCold(w), tod, from, to));
+  for (const w of [W.balanced, mixWeights(W.fastest, safeW, 0.5)]) cands.push(solveLegs(f, noCold(w), tod, wps));
   for (const mult of [1.4, 2, 3]) {
     for (const w of [W.balanced, safeW]) {
       for (const clash of [[safest, fastest], [safest]]) {
-        cands.push(solveCells(f, w, tod, from, to, penaltyFor(f, clash, mult)));
+        cands.push(solveLegs(f, w, tod, wps, penaltyFor(f, clash, mult, wps)));
       }
     }
-    if (cands.filter(distinct).length >= 3) break;
+    if (cands.filter((c) => distinct(flat(c))).length >= 3) break;
   }
-  // Critério (em ordem): distância razoável (<= 1,15× a maior das outras duas), risco <= o da mais
-  // rápida, visualmente distinta (corredor de 200 m), menor risco, menor distância.
   const identical = (a: number[], b: number[]) => Math.min(overlap(f, a, b, 0), overlap(f, b, a, 0)) > 0.9;
   const maxLen = 1.15 * Math.max(rs.distanceM, rf.distanceM);
   let rb: Route | null = null;
   let bestKey = Infinity;
   const seen = new Set<string>();
-  for (const c of cands) {
+  for (const legs of cands) {
+    const c = flat(legs);
     if (c.length <= 2 || identical(c, safest) || identical(c, fastest)) continue;
     const sig = `${c.length}:${c[c.length >> 1]}`;
     if (seen.has(sig)) continue;
     seen.add(sig);
-    const r = mk(c, 'balanced');
-    const key = (r.distanceM > maxLen ? 4e9 : 0) + (risk(r) > risk(rf) ? 2e9 : 0) + (distinct(c) ? 0 : 1e9) +
+    const r = mk(legs, 'balanced');
+    const o2Bad = r.alerts.some((a) => a.kind === 'o2' && a.severity === 'critical');
+    const key = (r.distanceM > maxLen || o2Bad ? 4e9 : 0) + (risk(r) > risk(rf) ? 2e9 : 0) + (distinct(c) ? 0 : 1e9) +
       risk(r) * 1e6 + r.distanceM;
     if (key < bestKey) { bestKey = key; rb = r; }
   }
-  if (!rb) rb = mk(cands[0].length ? cands[0] : safest, 'balanced');
+  // nothing reasonable (too long / O₂ fails): fall back to the natural balanced path, even if it
+  // overlaps another option, instead of an absurd detour
+  if (!rb || bestKey >= 4e9) rb = mk(flat(cands[0]).length ? cands[0] : safestL, 'balanced');
 
-  // Mantém a ordem intuitiva: a "segura" nunca é mais arriscada que a equilibrada, e se as duas
-  // empatam em risco a segura é a mais longa (desvio maior).
+  // Keep the intuitive order: "safest" is never riskier than balanced, and on equal risk the safest
+  // is the longer one (bigger detour).
   if (risk(rb) < risk(rs) || (risk(rb) === risk(rs) && rb.distanceM > rs.distanceM)) {
     const sPts = rs.points.map((p) => ({ lat: p.lat, lng: p.lng }));
     const bPts = rb.points.map((p) => ({ lat: p.lat, lng: p.lng }));
-    rs = buildRoute(bPts, 'safest', data, suit, tod);
-    rb = buildRoute(sPts, 'balanced', data, suit, tod);
+    rs = buildRoute(bPts, 'safest', data, suit, tod, lang, spec);
+    rb = buildRoute(sPts, 'balanced', data, suit, tod, lang, spec);
   }
   return [rs, rb, rf];
 }
 
-export function routeFromPolyline(points: LatLng[], data: MapData, suit: SuitState, tod: TimeOfDay): Route {
-  const pts = points.length === 1 ? [points[0], points[0]] : points;
-  return buildRoute(pts, 'manual', data, suit, tod);
+/** Inserts each via (in order) into the drawn polyline at its nearest segment. */
+function insertVias(points: LatLng[], via: LatLng[]): LatLng[] {
+  const out = points.map((p) => ({ lat: p.lat, lng: p.lng }));
+  let fromSeg = 0;
+  for (const v of via) {
+    if (out.length < 2) { out.push({ ...v }); fromSeg = out.length - 1; continue; }
+    const proj = makeProj(v.lat, v.lng);
+    let best = fromSeg;
+    let bestD = Infinity;
+    for (let k = fromSeg; k < out.length - 1; k++) {
+      const [ax, ay] = toXY(proj, out[k].lat, out[k].lng);
+      const [bx, by] = toXY(proj, out[k + 1].lat, out[k + 1].lng);
+      const d = distPointSegXY(0, 0, ax, ay, bx, by);
+      if (d < bestD) { bestD = d; best = k; }
+    }
+    out.splice(best + 1, 0, { lat: v.lat, lng: v.lng });
+    fromSeg = best + 1;
+  }
+  return out;
+}
+
+export function routeFromPolyline(
+  points: LatLng[], data: MapData, suit: SuitState, tod: TimeOfDay, opts?: PlanOptions,
+): Route {
+  const spec = stopSpec(opts);
+  let pts = points.length === 1 ? [points[0], points[0]] : points;
+  if (spec) pts = insertVias(pts, spec.via);
+  return buildRoute(pts, 'manual', data, suit, tod, opts?.lang ?? DEFAULT_LANG, spec);
 }

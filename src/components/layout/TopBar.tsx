@@ -3,12 +3,15 @@ import { useEffect, useState } from 'react';
 import { brand } from '@/config/brand';
 import { useAzimuth, type Mode } from '@/state/store';
 import { fmtLatLng, upper } from '@/lib/format';
+import { useT } from '@/lib/useT';
+import type { I18nKey } from '@/lib/i18n';
 import { Logo } from '@/components/ui/Logo';
+import { LangSwitch } from '@/components/ui/LangSwitch';
 
-const TABS: { mode: Exclude<Mode, 'intro'>; label: string }[] = [
-  { mode: 'plan', label: '01 PLANEJAR' },
-  { mode: 'walk', label: '02 CAMINHAR' },
-  { mode: 'rescue', label: '03 RESGATE' },
+const TABS: { mode: Exclude<Mode, 'intro'>; key: I18nKey }[] = [
+  { mode: 'plan', key: 'tabPlan' },
+  { mode: 'walk', key: 'tabWalk' },
+  { mode: 'rescue', key: 'tabRescue' },
 ];
 
 function Elapsed({ since }: { since: number | null }) {
@@ -22,6 +25,7 @@ function Elapsed({ since }: { since: number | null }) {
 }
 
 export function TopBar() {
+  const { t } = useT();
   const mode = useAzimuth((s) => s.mode);
   const setMode = useAzimuth((s) => s.setMode);
   const enterRescue = useAzimuth((s) => s.enterRescue);
@@ -31,10 +35,10 @@ export function TopBar() {
   const position = useAzimuth((s) => s.position);
   const rescueStartedAt = useAzimuth((s) => s.rescueStartedAt);
   const route = useAzimuth((s) => s.routes.find((r) => r.id === s.activeRouteId) ?? null);
-  const progressIdx = useAzimuth((s) => s.progressIdx);
+  const simDist = useAzimuth((s) => s.sim.distM);
 
   const rescue = mode === 'rescue';
-  const progressPct = route && route.distanceM > 0 ? Math.round(((route.points[progressIdx]?.distM ?? 0) / route.distanceM) * 100) : 0;
+  const progressPct = route && route.distanceM > 0 ? Math.min(100, Math.round((simDist / route.distanceM) * 100)) : 0;
 
   return (
     <header className="topbar">
@@ -42,56 +46,57 @@ export function TopBar() {
         <Logo alert={rescue} />
         <div className="min-w-0">
           <div className="f-display truncate" style={{ fontSize: 20, letterSpacing: 8, color: rescue ? 'var(--alert)' : undefined }}>
-            {rescue ? 'MODO RESGATE' : brand.name}
+            {rescue ? t('rescueMode') : brand.name}
           </div>
           <div className="f-mono" style={{ fontSize: 10, letterSpacing: 2, color: 'var(--text-dim)', marginTop: 4 }}>
             {rescue ? (
               <>
-                ATIVADO HÁ <Elapsed since={rescueStartedAt} />
+                {t('activatedAgo')} <Elapsed since={rescueStartedAt} />
               </>
             ) : mode === 'walk' ? (
-              'JEZERO · EM ROTA'
+              t('subWalk')
             ) : (
-              'JEZERO · PLANEJAMENTO'
+              t('subPlan')
             )}
           </div>
         </div>
       </div>
 
-      <nav className="flex" aria-label="Etapas">
-        {TABS.map((t) => (
+      <nav className="flex" aria-label={t('steps')}>
+        {TABS.map((tab) => (
           <button
-            key={t.mode}
+            key={tab.mode}
             type="button"
-            className={`crumb ${mode === t.mode ? 'on' : ''}`}
-            aria-current={mode === t.mode ? 'page' : undefined}
-            disabled={t.mode === 'walk' && !route}
-            title={t.mode === 'walk' && !route ? 'Escolha uma rota primeiro' : undefined}
-            onClick={() => setMode(t.mode)}
+            className={`crumb ${mode === tab.mode ? 'on' : ''}`}
+            aria-current={mode === tab.mode ? 'page' : undefined}
+            disabled={tab.mode === 'walk' && !route}
+            title={tab.mode === 'walk' && !route ? t('pickRouteFirst') : undefined}
+            onClick={() => setMode(tab.mode)}
           >
-            {t.label}
+            {t(tab.key)}
           </button>
         ))}
       </nav>
 
-      <div className="flex items-center gap-5">
+      <div className="flex items-center gap-4">
         {!rescue ? (
-          <div className="text-right hidden lg:block" style={{ minWidth: 210 }}>
+          <div className="text-right hidden xl:block" style={{ minWidth: 200 }}>
             <div className="f-mono" style={{ fontSize: 13, letterSpacing: 1 }}>
               {fmtLatLng(mode === 'walk' ? position : cursor ?? position)}
             </div>
             <div className="label" style={{ marginTop: 4 }}>
-              {mode === 'walk' && route ? `${upper(route.label)} · ${progressPct}%` : `${cursor ? 'CURSOR' : 'POSIÇÃO'} · ZOOM ${zoom}`}
+              {mode === 'walk' && route ? `${upper(route.label)} · ${progressPct}%` : `${cursor ? t('cursor') : t('positionLbl')} · ${t('zoom')} ${zoom}`}
             </div>
           </div>
         ) : null}
+        <LangSwitch />
         {rescue ? (
           <button type="button" className="btn" onClick={exitRescue}>
-            SAIR DO RESGATE
+            {t('exitRescue')}
           </button>
         ) : (
-          <button type="button" className="btn rescue" onClick={enterRescue} aria-label="Ativar modo resgate">
-            ⟲ RESGATE
+          <button type="button" className="btn rescue" onClick={enterRescue} aria-label={t('rescueAria')}>
+            {t('rescue')}
           </button>
         )}
       </div>

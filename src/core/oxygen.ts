@@ -1,8 +1,9 @@
 /**
- * Tempo de caminhada, consumo de O₂/bateria, margem e ponto sem retorno.
- * Modelo: velocidade do traje × (1 − slowdownPerDeg·inclinação), mínimo 30 % da velocidade.
- * Consumo de O₂ e bateria proporcional ao tempo (% por hora, src/config/suit.ts).
- * A volta pelo mesmo caminho gasta o mesmo O₂ da ida, + returnSafetyMargin; o2ReservePct nunca é usado.
+ * Walking time, O₂/battery use, margin and point of no return.
+ * Model: suit speed × (1 − slowdownPerDeg·slope), at least 30 % of the flat speed.
+ * O₂ and battery are proportional to time (% per hour, src/config/suit.ts), including work time at
+ * stops (route.stops, same per-hour rate). The way back along the same path costs the same WALKING
+ * O₂ as the way out (no stops) + returnSafetyMargin; o2ReservePct is never used.
  */
 import { suitConfig } from '@/config/suit';
 import type { OxygenMargin, PointOfNoReturn, Route, RoutePoint, SuitState } from './types';
@@ -12,7 +13,7 @@ export function speedKmh(slopeDeg: number | undefined): number {
   return suitConfig.walkSpeedKmh * Math.max(0.3, 1 - suitConfig.slowdownPerDeg * s);
 }
 
-/** Horas acumuladas desde o início em cada ponto. */
+/** Walking hours accumulated at each point (no stops). */
 export function cumulativeHours(points: RoutePoint[]): number[] {
   const out = new Array<number>(points.length).fill(0);
   for (let i = 1; i < points.length; i++) {
@@ -25,32 +26,65 @@ export function cumulativeHours(points: RoutePoint[]): number[] {
   return out;
 }
 
-/** Fração do tempo total decorrida em cada ponto (0..1). Usa só a distância se o tempo for 0. */
-export function timeFractions(route: Route): number[] {
-  const pts = route.points;
-  if (pts.length === 0) return [];
-  const h = cumulativeHours(pts);
-  const tot = h[h.length - 1];
-  if (tot > 0) return h.map((v) => v / tot);
-  const d = route.distanceM || 1;
-  return pts.map((p) => p.distM / d);
+/** Work hours accumulated at each point (work at a stop counts from that point on). */
+export function cumulativeStopHours(route: Pick<Route, 'points' | 'stops'>): number[] {
+  const out = new Array<number>(route.points.length).fill(0);
+  if (!route.stops?.length) return out;
+  const add = new Array<number>(route.points.length).fill(0);
+  for (const s of route.stops) if (s.index >= 0 && s.index < add.length) add[s.index] += Math.max(0, s.workMin) / 60;
+  let acc = 0;
+  for (let i = 0; i < out.length; i++) { acc += add[i]; out[i] = acc; }
+  return out;
 }
 
-/** O₂ usado (%) até cada ponto, consistente com route.o2UsedPct. */
+export function totalStopMin(route: Pick<Route, 'stops'>): number {
+  return (route.stops ?? []).reduce((s, x) => s + Math.max(0, x.workMin), 0);
+}
+
+/**
+ * O₂ used (%) up to each point: total (walk + work) and walk-only, consistent with route.o2UsedPct.
+ */
+function usedAt(route: Route, totalPct: number): { total: number[]; walk: number[] } {
+  const pts = route.points;
+  if (!pts.length) return { total: [], walk: [] };
+  const w = cumulativeHours(pts);
+  const s = cumulativeStopHours(route);
+  const tot = w[w.length - 1] + s[s.length - 1];
+  if (tot <= 0) {
+    const d = route.distanceM || 1;
+    const f = pts.map((p) => (p.distM / d) * totalPct);
+    return { total: f, walk: f };
+  }
+  const k = totalPct / tot;
+  return { total: w.map((v, i) => (v + s[i]) * k), walk: w.map((v) => v * k) };
+}
+
 export function o2UsedAt(route: Route): number[] {
-  return timeFractions(route).map((f) => f * route.o2UsedPct);
+  return usedAt(route, route.o2UsedPct).total;
+}
+export function o2WalkUsedAt(route: Route): number[] {
+  return usedAt(route, route.o2UsedPct).walk;
 }
 export function batteryUsedAt(route: Route): number[] {
-  return timeFractions(route).map((f) => f * route.batteryUsedPct);
+  return usedAt(route, route.batteryUsedPct).total;
+}
+export function batteryWalkUsedAt(route: Route): number[] {
+  return usedAt(route, route.batteryUsedPct).walk;
 }
 
-/** O₂ necessário para voltar à base pelo mesmo caminho a partir de um ponto com uso `used`. */
-export function returnNeed(used: number): number {
-  return used * (1 + suitConfig.returnSafetyMargin);
+/** O₂ needed to walk back to base along the same path, given the walking O₂ used to get there. */
+export function returnNeed(walkUsed: number): number {
+  return walkUsed * (1 + suitConfig.returnSafetyMargin);
+}
+
+/** O₂ used walking (no stops) for the whole route. */
+function walkTotal(route: Route): number {
+  const w = o2WalkUsedAt(route);
+  return w.length ? w[w.length - 1] : route.o2UsedPct;
 }
 
 export function oxygenMargin(route: Route, suit: SuitState): OxygenMargin {
-  const need = route.o2UsedPct + returnNeed(route.o2UsedPct);
+  const need = route.o2UsedPct + returnNeed(walkTotal(route));
   const margin = suit.o2Pct - need;
   return {
     o2AvailablePct: suit.o2Pct,
@@ -62,15 +96,15 @@ export function oxygenMargin(route: Route, suit: SuitState): OxygenMargin {
 }
 
 /**
- * Último índice em que o O₂ restante ainda cobre a volta à base pelo mesmo caminho
- * (com returnSafetyMargin) sem tocar na reserva. null se a rota inteira (ida até o destino)
- * nunca passa desse limite. Se já no início não cobre, retorna o índice 0.
+ * Last index where the remaining O₂ (after walking + stop work so far) still covers walking back to
+ * base along the same path (with returnSafetyMargin) without touching the reserve. null if the whole
+ * route never crosses that limit. Index 0 if not even the start is safe.
  */
 export function pointOfNoReturn(route: Route, suit: SuitState): PointOfNoReturn | null {
   const pts = route.points;
   if (pts.length === 0) return null;
-  const used = o2UsedAt(route);
-  const ok = (i: number) => suit.o2Pct - used[i] - returnNeed(used[i]) >= suitConfig.o2ReservePct;
+  const { total, walk } = usedAt(route, route.o2UsedPct);
+  const ok = (i: number) => suit.o2Pct - total[i] - returnNeed(walk[i]) >= suitConfig.o2ReservePct;
   if (ok(pts.length - 1)) return null;
   let last = 0;
   for (let i = 0; i < pts.length; i++) {
@@ -79,4 +113,10 @@ export function pointOfNoReturn(route: Route, suit: SuitState): PointOfNoReturn 
   }
   const p = pts[last];
   return { index: last, lat: p.lat, lng: p.lng, distM: p.distM };
+}
+
+/** Index of the first point where O₂ no longer covers the way back (−1 if never). */
+export function firstO2Failure(route: Route, suit: SuitState): number {
+  const { total, walk } = usedAt(route, route.o2UsedPct);
+  return total.findIndex((u, i) => suit.o2Pct - u - returnNeed(walk[i]) < suitConfig.o2ReservePct);
 }

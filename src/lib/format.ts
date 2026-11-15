@@ -1,7 +1,21 @@
 /** Formatação de números para a UI (sem cálculo de segurança: isso é do core). */
 import type { LatLng } from '@/core/types';
+import { DEFAULT_LANG, LOCALE, type Lang } from '@/config/i18n';
 
-const nf = (d: number) => new Intl.NumberFormat('pt-BR', { minimumFractionDigits: d, maximumFractionDigits: d });
+/** Idioma dos números (o store chama setFormatLang ao trocar de idioma). */
+let fmtLang: Lang = DEFAULT_LANG;
+export function setFormatLang(l: Lang) {
+  fmtLang = l;
+}
+export function getFormatLang(): Lang {
+  return fmtLang;
+}
+
+const nf = (d: number) => new Intl.NumberFormat(LOCALE[fmtLang], { minimumFractionDigits: d, maximumFractionDigits: d });
+
+export function fmtNum(v: number, digits = 0): string {
+  return nf(digits).format(v);
+}
 
 export function fmtKm(m: number | null | undefined, digits = 1): string {
   if (m == null || !Number.isFinite(m)) return '—';
@@ -52,10 +66,16 @@ export function bearing(a: LatLng, b: LatLng): { deg: number; cardinal: string }
   const y = Math.sin(toR(b.lng - a.lng)) * Math.cos(toR(b.lat));
   const x = Math.cos(toR(a.lat)) * Math.sin(toR(b.lat)) - Math.sin(toR(a.lat)) * Math.cos(toR(b.lat)) * Math.cos(toR(b.lng - a.lng));
   const deg = ((Math.atan2(y, x) * 180) / Math.PI + 360) % 360;
-  const names = ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
+  const names = fmtLang === 'en' ? ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'] : ['N', 'NE', 'L', 'SE', 'S', 'SO', 'O', 'NO'];
   return { deg, cardinal: names[Math.round(deg / 45) % 8] };
 }
 
 export function upper(s: string): string {
-  return s.toLocaleUpperCase('pt-BR');
+  return s.toLocaleUpperCase(LOCALE[fmtLang]);
+}
+
+/** Relógio de missão: 'T+1:05' (h:mm). */
+export function fmtClock(min: number): string {
+  const m = Math.max(0, Math.floor(min));
+  return `T+${Math.floor(m / 60)}:${String(m % 60).padStart(2, '0')}`;
 }

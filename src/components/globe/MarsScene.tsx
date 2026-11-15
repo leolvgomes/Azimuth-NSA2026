@@ -2,12 +2,12 @@
 
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
-import { Html, Stars, useTexture } from '@react-three/drei';
+import { Stars, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { brand } from '@/config/brand';
 import { BASE, JEZERO_BOUNDS } from '@/config/mission';
 import { facingDirection, latLngToVector3, yRotationToFace } from './geo';
-import { introCopy } from './copy';
+import type { IntroCopy } from './copy';
 
 /* ------------------------------------------------------------------ timeline */
 /** Seconds: pull back to whole globe (with spin), then turn back + dive to Jezero. */
@@ -106,28 +106,39 @@ const MARKER_QUAT = new THREE.Quaternion().setFromUnitVectors(
   MARKER_POS.clone().normalize(),
 );
 
-function formatCoord(lat: number, lng: number) {
+function formatCoord(lat: number, lng: number, locale: string) {
   const ns = lat >= 0 ? 'N' : 'S';
   const ew = lng >= 0 ? 'E' : 'W';
-  return `${Math.abs(lat).toFixed(4)}° ${ns} · ${Math.abs(lng).toFixed(4)}° ${ew}`;
+  const f = new Intl.NumberFormat(locale, { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  return `${f.format(Math.abs(lat))}° ${ns} · ${f.format(Math.abs(lng))}° ${ew}`;
 }
 
+const _wp = new THREE.Vector3();
+const _wn = new THREE.Vector3();
+const _toCam = new THREE.Vector3();
+
+/**
+ * 3D marker (diamond + pulse). The "YOU ARE HERE" label is plain DOM rendered by MarsIntro
+ * (see MarkerLabel); every frame we project the marker to screen space and move that element,
+ * hiding it when Jezero is on the far side. More robust than drei <Html> portals.
+ */
 function Marker({
   opacityRef,
-  showLabel,
   reducedMotion,
+  labelRef,
 }: {
   opacityRef: RefObject<number>;
-  showLabel: boolean;
   reducedMotion: boolean;
+  labelRef: RefObject<HTMLDivElement | null>;
 }) {
   const accent = brand.colors.accent;
+  const group = useRef<THREE.Group>(null);
   const diamondMat = useRef<THREE.MeshBasicMaterial>(null);
   const dotMat = useRef<THREE.MeshBasicMaterial>(null);
   const pulseMat = useRef<THREE.MeshBasicMaterial>(null);
   const pulse = useRef<THREE.Mesh>(null);
 
-  useFrame(({ clock }) => {
+  useFrame(({ clock, camera, size }) => {
     const o = opacityRef.current ?? 1;
     if (diamondMat.current) diamondMat.current.opacity = o;
     if (dotMat.current) dotMat.current.opacity = o;
@@ -136,14 +147,22 @@ function Marker({
       pulse.current.scale.setScalar(1 + k * 1.8);
       pulseMat.current.opacity = o * (1 - k) * 0.8;
     }
+    const el = labelRef.current;
+    if (el && group.current) {
+      group.current.getWorldPosition(_wp);
+      _wn.copy(_wp).normalize();
+      _toCam.copy(camera.position).sub(_wp).normalize();
+      const facing = _wn.dot(_toCam) > 0.15;
+      _wp.project(camera);
+      const x = ((_wp.x + 1) / 2) * size.width;
+      const y = ((1 - _wp.y) / 2) * size.height;
+      el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
+      el.style.visibility = facing && _wp.z < 1 ? 'visible' : 'hidden';
+    }
   });
 
-  const font = {
-    mono: `var(--font-mono, '${brand.fonts.mono}'), ui-monospace, monospace`,
-  };
-
   return (
-    <group position={MARKER_POS} quaternion={MARKER_QUAT}>
+    <group ref={group} position={MARKER_POS} quaternion={MARKER_QUAT}>
       {/* ringGeometry with 4 theta segments is a diamond */}
       <mesh renderOrder={2} raycast={() => null}>
         <ringGeometry args={[0.017, 0.023, 4, 1]} />
@@ -157,48 +176,77 @@ function Marker({
         <ringGeometry args={[0.024, 0.0265, 64]} />
         <meshBasicMaterial ref={pulseMat} color={accent} transparent depthWrite={false} toneMapped={false} />
       </mesh>
-      <Html zIndexRange={[20, 10]} style={{ pointerEvents: 'none' }}>
+    </group>
+  );
+}
+
+/** DOM label positioned every frame by <Marker> (render it over the canvas, same box). */
+export function MarkerLabel({
+  ref,
+  copy,
+  locale,
+  visible,
+}: {
+  ref: RefObject<HTMLDivElement | null>;
+  copy: IntroCopy;
+  locale: string;
+  visible: boolean;
+}) {
+  const accent = brand.colors.accent;
+  return (
+    <div
+      ref={ref}
+      aria-hidden
+      style={{
+        position: 'absolute',
+        left: 0,
+        top: 0,
+        zIndex: 3,
+        pointerEvents: 'none',
+        visibility: 'hidden',
+        willChange: 'transform',
+      }}
+    >
+      <div
+        style={{
+          position: 'relative',
+          opacity: visible ? 1 : 0,
+          transition: 'opacity 350ms ease',
+          fontFamily: `var(--font-mono, '${brand.fonts.mono}'), ui-monospace, monospace`,
+          color: brand.colors.text,
+          whiteSpace: 'nowrap',
+        }}
+      >
         <div
           style={{
-            position: 'relative',
-            opacity: showLabel ? 1 : 0,
-            transition: 'opacity 350ms ease',
-            fontFamily: font.mono,
-            color: brand.colors.text,
-            whiteSpace: 'nowrap',
+            position: 'absolute',
+            left: 22,
+            top: 0,
+            transform: 'translateY(-50%)',
+            background: 'rgba(5,5,5,0.55)',
+            borderLeft: `2px solid ${accent}`,
+            padding: '8px 12px',
+            backdropFilter: 'blur(2px)',
           }}
         >
-          <div
-            style={{
-              position: 'absolute',
-              left: 22,
-              top: 0,
-              transform: 'translateY(-50%)',
-              background: 'rgba(5,5,5,0.55)',
-              borderLeft: `2px solid ${accent}`,
-              padding: '8px 12px',
-              backdropFilter: 'blur(2px)',
-            }}
-          >
-            <div style={{ fontSize: 11, letterSpacing: 2, color: accent }}>{introCopy.youAreHere}</div>
-            <div style={{ fontSize: 13, marginTop: 6 }}>{introCopy.placeName}</div>
-            <div style={{ fontSize: 11, marginTop: 4, color: brand.colors.textDim }}>
-              {formatCoord(BASE.lat, BASE.lng)}
-            </div>
+          <div style={{ fontSize: 11, letterSpacing: 2, color: accent }}>{copy.youAreHere}</div>
+          <div style={{ fontSize: 13, marginTop: 6 }}>{copy.placeName}</div>
+          <div style={{ fontSize: 11, marginTop: 4, color: brand.colors.textDim }}>
+            {formatCoord(BASE.lat, BASE.lng, locale)}
           </div>
-          <div
-            style={{
-              position: 'absolute',
-              right: 22,
-              top: 0,
-              width: 'min(140px, 18vw)',
-              borderTop: `1px dashed ${accent}`,
-              opacity: 0.6,
-            }}
-          />
         </div>
-      </Html>
-    </group>
+        <div
+          style={{
+            position: 'absolute',
+            right: 22,
+            top: 0,
+            width: 'min(140px, 18vw)',
+            borderTop: `1px dashed ${accent}`,
+            opacity: 0.6,
+          }}
+        />
+      </div>
+    </div>
   );
 }
 
@@ -251,16 +299,16 @@ function Planet({
   onReady,
   spinRef,
   markerOpacity,
-  showLabel,
   reducedMotion,
+  labelRef,
 }: {
+  labelRef: RefObject<HTMLDivElement | null>;
   textureUrl: string;
   patchUrl: string;
   onClick: () => void;
   onReady: () => void;
   spinRef: RefObject<THREE.Group | null>;
   markerOpacity: RefObject<number>;
-  showLabel: boolean;
   reducedMotion: boolean;
 }) {
   const map = useTexture(textureUrl);
@@ -288,7 +336,7 @@ function Planet({
           <meshStandardMaterial map={map} bumpMap={map} bumpScale={1.2} roughness={1} metalness={0} />
         </mesh>
         <JezeroPatch url={patchUrl} />
-        <Marker opacityRef={markerOpacity} showLabel={showLabel} reducedMotion={reducedMotion} />
+        <Marker opacityRef={markerOpacity} reducedMotion={reducedMotion} labelRef={labelRef} />
       </group>
     </group>
   );
@@ -413,11 +461,12 @@ function CameraRig({
 
 /* -------------------------------------------------------------------- scene */
 export interface MarsSceneProps {
+  /** DOM element of <MarkerLabel>, moved every frame to follow the Jezero marker. */
+  labelRef: RefObject<HTMLDivElement | null>;
   textureUrl: string;
   patchUrl: string;
   flying: boolean;
   reducedMotion: boolean;
-  showLabel: boolean;
   fadeRef: RefObject<HTMLDivElement | null>;
   onPlanetClick: () => void;
   onFlightEnd: () => void;
@@ -448,8 +497,8 @@ export default function MarsScene(props: MarsSceneProps) {
         onReady={props.onReady}
         spinRef={spinRef}
         markerOpacity={markerOpacity}
-        showLabel={props.showLabel}
         reducedMotion={props.reducedMotion}
+        labelRef={props.labelRef}
       />
       <Atmosphere />
       <CameraRig

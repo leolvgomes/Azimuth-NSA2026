@@ -3,7 +3,7 @@
  * A IA nunca devolve números inventados: devolve texto + AÇÕES que a UI aplica.
  * Só o orquestrador altera este arquivo.
  */
-import type { LatLng, RescuePlan, Route, RoverPhoto, SuitState, TimeOfDay } from '@/core/types';
+import type { Lang, LatLng, RescuePlan, Route, RoverPhoto, ScienceStopOnRoute, SuitState, TimeOfDay } from '@/core/types';
 
 export interface ChatMessage {
   role: 'user' | 'assistant';
@@ -19,6 +19,10 @@ export interface AppSnapshot {
   activeRouteId: string | null;
   routes: Route[]; // opções visíveis no momento
   progressIdx: number; // índice do ponto atual na rota ativa (modo walk)
+  /** Idioma da interface; a Azimuth responde nele. Padrão 'en'. */
+  lang?: Lang;
+  /** Minutos de missão decorridos na caminhada (modo walk). */
+  missionElapsedMin?: number;
 }
 
 export interface AzimuthRequest {
@@ -33,6 +37,10 @@ export type AzimuthAction =
   | { type: 'showPhoto'; photo: RoverPhoto }
   | { type: 'focusMap'; at: LatLng; zoom?: number }
   | { type: 'setTimeOfDay'; timeOfDay: TimeOfDay }
+  /** Destaca paradas científicas ao longo da rota (painel + mapa). */
+  | { type: 'showScience'; stops: ScienceStopOnRoute[] }
+  /** Replaneja as rotas passando pelos alvos (ids de science-targets.json), na ordem. */
+  | { type: 'addScienceStops'; targetIds: string[]; routes: Route[]; selectId: string }
   /** Ações físicas (chamar rover) SEMPRE pedem confirmação do astronauta. */
   | { type: 'confirmRoverCall'; role: 'scout' | 'rescue' | 'carrier' | 'relay'; reason: string; etaMin: number };
 

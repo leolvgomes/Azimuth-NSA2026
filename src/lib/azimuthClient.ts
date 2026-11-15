@@ -9,6 +9,8 @@ import { loadMapData } from '@/data/loadMapData';
 import { loadOfflineAnswer } from '@/lib/optionalModules';
 import { nextCardId, useAzimuth } from '@/state/store';
 import { speak } from '@/lib/speech';
+import { tr } from '@/lib/i18n';
+import { LOCALE } from '@/config/i18n';
 
 function snapshot(): AppSnapshot {
   const s = useAzimuth.getState();
@@ -20,6 +22,8 @@ function snapshot(): AppSnapshot {
     activeRouteId: s.activeRouteId,
     routes: s.routes,
     progressIdx: s.progressIdx,
+    lang: s.lang,
+    missionElapsedMin: s.mode === 'walk' ? s.sim.elapsedMin : undefined,
   };
 }
 
@@ -48,7 +52,7 @@ async function viaOffline(req: AzimuthRequest): Promise<AzimuthResponse> {
   const fn = await loadOfflineAnswer();
   if (!fn) {
     return {
-      text: 'Assistente offline no momento. Você ainda pode traçar rotas, ver alertas e entrar no modo Resgate pelos botões.',
+      text: tr(useAzimuth.getState().lang, 'assistantOffline'),
       actions: [],
       source: 'offline',
       error: 'offline-module-missing',
@@ -59,7 +63,7 @@ async function viaOffline(req: AzimuthRequest): Promise<AzimuthResponse> {
     return await fn(req, data);
   } catch (err) {
     return {
-      text: 'Não consegui responder agora. Tente de novo ou use os botões do painel.',
+      text: tr(useAzimuth.getState().lang, 'assistantError'),
       actions: [],
       source: 'offline',
       error: String(err),
@@ -85,5 +89,5 @@ export async function askAzimuth(text: string): Promise<void> {
     card: { id: nextCardId(), text: res.text, actions: res.actions, source: res.source, error: res.error },
   });
   s.applyAzimuthActions(res.actions);
-  if (useAzimuth.getState().speakReplies) speak(res.text);
+  if (useAzimuth.getState().speakReplies) speak(res.text, LOCALE[useAzimuth.getState().lang]);
 }

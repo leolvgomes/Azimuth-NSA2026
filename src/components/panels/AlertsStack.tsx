@@ -2,10 +2,12 @@
 import { useEffect, useState } from 'react';
 import type { Alert } from '@/core/types';
 import { useAzimuth } from '@/state/store';
+import { useT } from '@/lib/useT';
 import { AlertBox } from '@/components/ui/AlertBox';
 
-/** Alertas sempre visíveis sobre o mapa (sem abrir menu). */
+/** Alertas sempre visíveis sobre o mapa (sem abrir menu). Máx. 2 empilhados, colapsável. */
 export function AlertsStack() {
+  const { t } = useT();
   const routes = useAzimuth((s) => s.routes);
   const activeId = useAzimuth((s) => s.activeRouteId);
   const alerts = useAzimuth((s) => s.alerts);
@@ -22,17 +24,19 @@ export function AlertsStack() {
     return () => window.removeEventListener('resize', upd);
   }, []);
   const active = routes.find((r) => r.id === activeId);
-  // na caminhada o painel 'Pela frente' mostra o alerta iminente e o mapa marca os trechos
+  // na caminhada o painel "Ahead" mostra o alerta iminente e o mapa marca os trechos
   if (!active || mode === 'rescue' || mode === 'walk') return null;
 
   let list: { alert: Alert; prefix?: string }[];
   if (alerts.length) {
-    list = alerts.map((a) => ({ alert: a, prefix: `${active.label} · trecho ${segmentNo(active.points.length, a.fromIdx)}` }));
+    list = alerts.map((a) => ({ alert: a, prefix: `${active.label} · ${t('segment')} ${segmentNo(active.points.length, a.fromIdx)}` }));
   } else {
     // rota ativa limpa: mostra por que as alternativas são piores
     list = routes
       .filter((r) => r.id !== activeId)
-      .flatMap((r) => (routeAlerts[r.id] ?? []).slice(0, 1).map((a) => ({ alert: a, prefix: `Rota ${r.label} · trecho ${segmentNo(r.points.length, a.fromIdx)}` })));
+      .flatMap((r) =>
+        (routeAlerts[r.id] ?? []).slice(0, 1).map((a) => ({ alert: a, prefix: `${t('routeWord')} ${r.label} · ${t('segment')} ${segmentNo(r.points.length, a.fromIdx)}` })),
+      );
   }
   if (!list.length) return null;
   const shown = expanded ? list : list.slice(0, 2);
@@ -41,11 +45,11 @@ export function AlertsStack() {
     <div className="flex flex-col gap-2" aria-live="polite">
       <div className="flex gap-2">
         <button type="button" className="mini rf" onClick={() => setCollapsed(!collapsed)} aria-expanded={!collapsed}>
-          ! {list.length} {list.length === 1 ? 'ALERTA' : 'ALERTAS'} · {collapsed ? 'MOSTRAR' : 'OCULTAR'}
+          ! {list.length} {list.length === 1 ? t('alertsCount1') : t('alertsCountN')} · {collapsed ? t('show') : t('hide')}
         </button>
         {!collapsed && list.length > 2 ? (
           <button type="button" className="mini r" onClick={() => setExpanded(!expanded)}>
-            {expanded ? 'MENOS' : `+${list.length - 2} ALERTAS`}
+            {expanded ? t('less') : `+${list.length - 2} ${t('moreAlerts')}`}
           </button>
         ) : null}
       </div>

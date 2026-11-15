@@ -9,9 +9,9 @@
  */
 import type { ComponentType } from 'react';
 import type { AzimuthRequest, AzimuthResponse } from '@/ai/contract';
-import type { MapData } from '@/core/types';
+import type { Lang, MapData } from '@/core/types';
 
-export type MarsIntroComponent = ComponentType<{ onEnter: () => void }>;
+export type MarsIntroComponent = ComponentType<{ onEnter: () => void; lang?: Lang }>;
 export type OfflineAnswerFn = (req: AzimuthRequest, data: MapData) => Promise<AzimuthResponse>;
 
 function safeContext(make: () => AzimuthRequireContext): AzimuthRequireContext | null {

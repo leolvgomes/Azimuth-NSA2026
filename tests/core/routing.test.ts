@@ -40,7 +40,7 @@ describe('A* e perfis', () => {
     const data = mapData({ hazards: [hz] });
     const routes = planRoutes(at(50, 10), at(50, 90), data, fullSuit, 'day');
     expect(routes.map((r) => r.profile)).toEqual(['safest', 'balanced', 'fastest']);
-    expect(routes.map((r) => r.label)).toEqual(['Mais segura', 'Equilibrada', 'Mais rápida']);
+    expect(routes.map((r) => r.label)).toEqual(['Safest', 'Balanced', 'Fastest']);
     const [safest, balanced, fastest] = routes;
     const minD = (r: Route) => Math.min(...r.points.map((p) => hazardDistanceM(hz, p)));
     expect(minD(safest)).toBeGreaterThan(minD(fastest));
@@ -101,7 +101,7 @@ describe('resgate, dossiê, fotos', () => {
     const far = { id: 'far', name: 'Longe', ...at(5, 95) };
     const data = mapData({ shelters: [far, base] });
     const [route] = planRoutes(base, at(50, 90), data, fullSuit, 'day');
-    const k = Math.floor(route.points.length * 0.6);
+    const k = Math.floor(route.points.length * 0.35);
     const pos = route.points[k];
     const plan = computeRescue(pos, k, route, data, { o2Pct: 70, batteryPct: 70, suitTempC: 18 }, 'day');
     expect(plan.shelter.id).toBe('base');

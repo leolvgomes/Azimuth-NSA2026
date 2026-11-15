@@ -3,10 +3,11 @@
  * Não importe isto no cliente: lê process.env. O cliente usa offline.ts direto.
  */
 import { GoogleGenAI, FunctionCallingConfigMode, type Content, type Part } from '@google/genai';
+import { DEFAULT_LANG } from '@/config/i18n';
 import { loadMapData } from '@/data/loadMapData';
 import type { MapData } from '@/core/types';
 import type { AppSnapshot, AzimuthAction, AzimuthRequest, AzimuthResponse, ChatMessage } from './contract';
-import { offlineAnswer } from './offline';
+import { detectIntent, offlineAnswer } from './offline';
 import { buildSystemPrompt } from './prompt';
 import { runTool, TOOL_DECLARATIONS, type ToolContext } from './tools';
 
@@ -56,6 +57,8 @@ export function parseRequest(body: unknown): AzimuthRequest | string {
     activeRouteId: typeof s.activeRouteId === 'string' ? s.activeRouteId : null,
     routes: Array.isArray(s.routes) ? (s.routes as AppSnapshot['routes']) : [],
     progressIdx: isNum(s.progressIdx) ? Math.max(0, Math.floor(s.progressIdx)) : 0,
+    lang: s.lang === 'pt' ? 'pt' : DEFAULT_LANG,
+    ...(isNum(s.missionElapsedMin) ? { missionElapsedMin: Math.max(0, s.missionElapsedMin) } : {}),
   };
   return { messages: messages.slice(-MAX_MESSAGES), snapshot };
 }
@@ -73,7 +76,13 @@ export async function answer(body: unknown): Promise<AzimuthResponse | { error: 
   let lastError: unknown = null;
   for (const model of modelChain()) {
     try {
-      return await withTimeout(geminiAnswer(req, data, process.env.GEMINI_API_KEY!.trim(), model), TIMEOUT_MS + 1000);
+      const res = await withTimeout(geminiAnswer(req, data, process.env.GEMINI_API_KEY!.trim(), model), TIMEOUT_MS + 1000);
+      // Rede de segurança: pedido de rover sem call_rover → o modelo inventou o ETA; usa o plano B (ETA do core).
+      const lastUser = [...req.messages].reverse().find((m) => m.role === 'user')?.text ?? '';
+      if (detectIntent(lastUser) === 'rover' && !res.actions.some((a) => a.type === 'confirmRoverCall')) {
+        return { ...(await offlineAnswer(req, data)), error: 'gemini skipped call_rover' };
+      }
+      return res;
     } catch (e) {
       lastError = e;
       if (!isRetryableModelError(e)) break;

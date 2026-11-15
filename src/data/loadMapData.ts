@@ -10,10 +10,11 @@
  *   public/data/perseverance-track.json  [lat,lng][]
  *   public/data/photos.json         RoverPhoto[]
  *   public/data/shelters.json       Shelter[]
+ *   public/data/science-targets.json ScienceTarget[] (opcional)
  * Se um arquivo faltar, cai num valor neutro e o core gera alerta 'no-data'.
  */
 import { BASE, JEZERO_BOUNDS } from '@/config/mission';
-import type { Grid, Hazard, Landmark, MapData, RoverPhoto, Shelter } from '@/core/types';
+import type { Grid, Hazard, Landmark, MapData, RoverPhoto, ScienceTarget, Shelter } from '@/core/types';
 
 type Reader = (path: string) => Promise<unknown | null>;
 
@@ -53,12 +54,12 @@ export function loadMapData(): Promise<MapData> {
 }
 
 async function load(read: Reader): Promise<MapData> {
-  const [slope, tempDay, tempNight, elevation, hazard, trackProximity, hazards, landmarks, track, photos, shelters] =
+  const [slope, tempDay, tempNight, elevation, hazard, trackProximity, hazards, landmarks, track, photos, shelters, science] =
     await Promise.all([
       read('grids/slope.json'), read('grids/tempDay.json'), read('grids/tempNight.json'),
       read('grids/elevation.json'), read('grids/hazard.json'), read('grids/trackProximity.json'),
       read('hazards.json'), read('landmarks.json'), read('perseverance-track.json'),
-      read('photos.json'), read('shelters.json'),
+      read('photos.json'), read('shelters.json'), read('science-targets.json'),
     ]);
   const baseShelter: Shelter = { id: BASE.id, name: BASE.name, lat: BASE.lat, lng: BASE.lng };
   return {
@@ -75,6 +76,7 @@ async function load(read: Reader): Promise<MapData> {
     perseveranceTrack: (track as [number, number][]) ?? [],
     photos: (photos as RoverPhoto[]) ?? [],
     shelters: (shelters as Shelter[])?.length ? (shelters as Shelter[]) : [baseShelter],
+    scienceTargets: (science as ScienceTarget[]) ?? [],
   };
 }
 

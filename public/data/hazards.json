@@ -2,6 +2,7 @@
   {
     "id": "neretva-vallis",
     "name": "Neretva Vallis (canal de entrada)",
+    "nameEn": "Neretva Vallis (inlet channel)",
     "kind": "channel",
     "severity": "avoid",
     "polygon": [
@@ -83,11 +84,13 @@
       ]
     ],
     "advice": "Não desça no leito do vale: paredes íngremes e areia fina; atravesse só por uma rampa mapeada.",
+    "adviceEn": "Stay out of the valley floor: steep walls and fine sand; cross only at a mapped ramp.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; valley walls confirmed by CTX DTM slope"
   },
   {
     "id": "western-breach",
     "name": "Brecha oeste (Neretva corta a borda)",
+    "nameEn": "Western breach (Neretva cuts the rim)",
     "kind": "breach",
     "severity": "avoid",
     "polygon": [
@@ -137,11 +140,13 @@
       ]
     ],
     "advice": "Passagem estreita entre paredes da borda: evite, risco de queda e deslizamento.",
+    "adviceEn": "Narrow gap between rim walls: avoid it, risk of falls and slides.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; inlet breach where Neretva Vallis cuts the western rim"
   },
   {
     "id": "west-rim",
     "name": "Borda oeste da cratera Jezero",
+    "nameEn": "Jezero western rim",
     "kind": "rim",
     "severity": "caution",
     "polygon": [
@@ -207,11 +212,13 @@
       ]
     ],
     "advice": "Terreno alto e acidentado com encostas >15°: suba só com rota planejada e reserva de O₂.",
+    "adviceEn": "High, rugged ground with slopes over 15°: climb only on a planned route with O₂ reserve.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; rim location from CTX DTM elevation/slope"
   },
   {
     "id": "delta-front-scarp",
     "name": "Escarpa da frente do delta",
+    "nameEn": "Delta-front scarp",
     "kind": "scarp",
     "severity": "caution",
     "polygon": [
@@ -341,11 +348,13 @@
       ]
     ],
     "advice": "Escarpa de dezenas de metros: aproxime-se pela base e suba só por uma rampa (ex.: Hawksbill Gap).",
+    "adviceEn": "Scarp tens of metres high: approach from the base and climb only via a ramp (e.g. Hawksbill Gap).",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; scarp traced along the eastern/southern delta front, steepness from CTX DTM"
   },
   {
     "id": "floor-trough",
     "name": "Canal sinuoso no assoalho (pré-delta)",
+    "nameEn": "Sinuous trough on the crater floor",
     "kind": "channel",
     "severity": "caution",
     "polygon": [
@@ -411,11 +420,13 @@
       ]
     ],
     "advice": "Depressão rasa com borda irregular: cruze em ângulo reto e devagar, sem pisar na borda.",
+    "adviceEn": "Shallow trough with ragged edges: cross it slowly at a right angle, off the rim.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; sinuous trough/contact on the crater floor between landing site and delta (interpretation approximate)"
   },
   {
     "id": "seitah",
     "name": "Séítah (dunas e cristas)",
+    "nameEn": "Séítah (dunes and ridges)",
     "kind": "dune",
     "severity": "caution",
     "polygon": [
@@ -457,11 +468,13 @@
       ]
     ],
     "advice": "Areia solta entre cristas rochosas: contorne pela borda leste, como fez o Perseverance.",
+    "adviceEn": "Loose sand between rocky ridges: skirt it along the east edge, as Perseverance did.",
     "source": "Approximate outline from Perseverance traverse (sols 180-380 skirted Séítah's east edge) and CTX texture"
   },
   {
     "id": "seitah-dunes",
     "name": "Campo de dunas de Séítah",
+    "nameEn": "Séítah dune field",
     "kind": "dune",
     "severity": "avoid",
     "center": {
@@ -470,11 +483,13 @@
     },
     "radiusM": 900,
     "advice": "Dunas de areia fina: risco de atolar; não atravesse a pé.",
+    "adviceEn": "Fine-sand dunes: risk of getting stuck; do not cross on foot.",
     "source": "Approximate; Séítah dune/ripple field (NASA/JPL Perseverance mission reports), placed on CTX texture"
   },
   {
     "id": "belva-crater",
     "name": "Cratera Belva",
+    "nameEn": "Belva crater",
     "kind": "crater",
     "severity": "avoid",
     "center": {
@@ -483,11 +498,13 @@
     },
     "radiusM": 500,
     "advice": "Paredes internas íngremes: observe da borda sul, não desça.",
+    "adviceEn": "Steep inner walls: observe from the south rim, do not descend.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; ~1 km crater on the delta top, Perseverance studied its south rim ~sol 760"
   },
   {
     "id": "floor-crater-n",
     "name": "Cratera pequena ao norte da base",
+    "nameEn": "Small crater north of base",
     "kind": "crater",
     "severity": "caution",
     "center": {
@@ -496,6 +513,7 @@
     },
     "radiusM": 160,
     "advice": "Pequena cratera de impacto: contorne pela borda.",
+    "adviceEn": "Small impact crater: walk around the rim.",
     "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
   }
 ]

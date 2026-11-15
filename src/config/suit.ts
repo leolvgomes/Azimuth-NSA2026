@@ -23,6 +23,19 @@ export const suitConfig = {
   o2ReservePct: 10,
 } as const;
 
+/**
+ * Simulação da caminhada (modo CAMINHAR). O tempo da missão anda sozinho e consome O₂/bateria
+ * pelas taxas acima; o astronauta pode pausar. DADOS DE EXEMPLO.
+ */
+export const walkSim = {
+  /** Minutos de missão por segundo real (60 = 1 min real ≈ 1 h de missão). */
+  missionMinutesPerSecond: 1.5,
+  /** Multiplicadores do botão de velocidade do demo. */
+  speedOptions: [1, 4, 16],
+  /** Avisar quando faltar isto (m) para o ponto sem retorno. */
+  pnrWarnAheadM: 300,
+} as const;
+
 /** Estado inicial dos sliders. */
 export const initialSuitState = {
   o2Pct: 72,

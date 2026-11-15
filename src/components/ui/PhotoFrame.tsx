@@ -1,5 +1,8 @@
+'use client';
 /* eslint-disable @next/next/no-img-element */
 import type { RoverPhoto } from '@/core/types';
+import { localized } from '@/config/i18n';
+import { useT } from '@/lib/useT';
 
 /** Foto real do rover (ou placeholder com o gradiente do design enquanto não há fotos). */
 export function PhotoFrame({ photo, height, caption, tag, className = '', onClick }: {
@@ -10,10 +13,11 @@ export function PhotoFrame({ photo, height, caption, tag, className = '', onClic
   className?: string;
   onClick?: () => void;
 }) {
-  const cap = caption ?? (photo ? `${photo.camera} · SOL ${photo.sol}` : 'SEM FOTO PRÓXIMA');
+  const { lang } = useT();
+  const cap = caption ?? (photo ? `${photo.camera} · SOL ${photo.sol}` : lang === 'en' ? 'NO NEARBY PHOTO' : 'SEM FOTO PRÓXIMA');
   const inner = (
     <>
-      {photo ? <img src={photo.src} alt={photo.caption || `Foto do rover, sol ${photo.sol}`} loading="lazy" /> : null}
+      {photo ? <img src={photo.src} alt={localized(photo.caption, photo.captionEn, lang) || `Rover photo, sol ${photo.sol}`} loading="lazy" /> : null}
       {tag ? <div className="tag-sample">{tag}</div> : null}
       <div className="cap">{cap}</div>
     </>
