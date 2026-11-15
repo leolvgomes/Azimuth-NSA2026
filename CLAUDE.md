@@ -15,6 +15,12 @@ Time: Leonardo (código), Clara Almeida (design, briefing, vídeo), Paiva (a def
   Temperatura THEMIS = aproximada (brilho térmico). Robôs de apoio = conceito.
 - Créditos: NASA/JPL-Caltech, MRO CTX, MOLA, THEMIS, CRISM, USGS Astrogeology, MEDA, RAD.
 - Não rodar `npm install` sem necessidade real; se precisar de pacote novo, reportar ao orquestrador.
+- **Idioma: inglês é o padrão**, português é opção no seletor EN/PT (`src/config/i18n.ts`, `DEFAULT_LANG`).
+  Todo texto visível existe nos dois idiomas. Dados bilíngues usam campos `*En` (`nameEn`, `adviceEn`...);
+  o core recebe `opts.lang` (`PlanOptions`) e a IA usa `snapshot.lang`.
+- O Leonardo roda `next dev` na porta 3000 pelo VS Code: **nunca** derrubar esse processo nem rodar
+  `next build` na pasta `.next`. Para build de verificação: `NEXT_DIST_DIR=.next-verify npx next build`.
+- Para a Vercel: a chave vai em Settings → Environment Variables (`GEMINI_API_KEY`).
 
 ## Stack
 Next.js 15 (App Router, `src/`), React 19, TypeScript, Tailwind 4, Leaflet/react-leaflet (mapa 2D,

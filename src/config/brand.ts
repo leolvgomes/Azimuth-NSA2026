@@ -36,6 +36,24 @@ export const brand = {
 
   credits:
     'NASA/JPL-Caltech · MRO CTX · MOLA · THEMIS · CRISM · USGS Astrogeology · MEDA · RAD',
+
+  /** Textos de marca por idioma (inglês = padrão). Os campos de cima são o PT legado. */
+  text: {
+    en: {
+      tagline: 'Know the way home.',
+      subtitle: 'The safest route through Jezero. And always the way back.',
+      sampleDataLabel: 'SAMPLE DATA',
+      description:
+        'A layered map of Jezero Crater that shows a Mars astronaut the safest route and always the way home.',
+    },
+    pt: {
+      tagline: 'Know the way home.',
+      subtitle: 'O caminho mais seguro em Jezero. E sempre o caminho de volta.',
+      sampleDataLabel: 'DADOS DE EXEMPLO',
+      description:
+        'Mapa em camadas da Cratera Jezero que mostra ao astronauta a rota mais segura e sempre o caminho de volta.',
+    },
+  },
 } as const;
 
 export type Brand = typeof brand;

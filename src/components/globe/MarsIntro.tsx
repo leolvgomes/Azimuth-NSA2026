@@ -14,11 +14,14 @@ import { Canvas } from '@react-three/fiber';
 import { brand } from '@/config/brand';
 import { BASE } from '@/config/mission';
 import { environment, initialSuitState } from '@/config/suit';
-import MarsScene, { MARS_FOV } from './MarsScene';
-import { introCopy } from './copy';
+import MarsScene, { MARS_FOV, MarkerLabel } from './MarsScene';
+import { introCopy, type IntroCopy } from './copy';
+import { DEFAULT_LANG, LOCALE, type Lang } from '@/config/i18n';
 
 export interface MarsIntroProps {
   onEnter: () => void;
+  /** UI language (default DEFAULT_LANG = 'en'). */
+  lang?: Lang;
 }
 
 const C = brand.colors;
@@ -115,13 +118,15 @@ function Corner({ pos }: { pos: 'tl' | 'tr' | 'bl' | 'br' }) {
   return <div style={s} />;
 }
 
-function Telemetry() {
+function Telemetry({ copy, lang }: { copy: IntroCopy; lang: Lang }) {
+  const n = (v: number, digits = 0) =>
+    new Intl.NumberFormat(LOCALE[lang], { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(v);
   const items: { k: string; v: string; accent?: boolean }[] = [
-    { k: introCopy.base, v: `${BASE.lat.toFixed(2)}° N · ${BASE.lng.toFixed(2)}° E` },
-    { k: introCopy.air, v: `${environment.airTempC} °C · ${environment.pressurePa} Pa` },
-    { k: introCopy.radiation, v: `${environment.radiationMSvPerDay} mSv/dia` },
-    { k: introCopy.o2, v: `${initialSuitState.o2Pct}%`, accent: true },
-    { k: introCopy.battery, v: `${initialSuitState.batteryPct}%` },
+    { k: copy.base, v: `${n(BASE.lat, 2)}° N · ${n(BASE.lng, 2)}° E` },
+    { k: copy.air, v: `${n(environment.airTempC)} °C · ${n(environment.pressurePa)} Pa` },
+    { k: copy.radiation, v: `${n(environment.radiationMSvPerDay, 2)} ${copy.radiationUnit}` },
+    { k: copy.o2, v: `${n(initialSuitState.o2Pct)}%`, accent: true },
+    { k: copy.battery, v: `${n(initialSuitState.batteryPct)}%` },
   ];
   return (
     <div className="azi-telemetry">
@@ -142,10 +147,10 @@ function Telemetry() {
           whiteSpace: 'nowrap',
         }}
       >
-        {brand.sampleDataLabel}
+        {brand.text[lang].sampleDataLabel}
       </div>
       <div className="azi-tel-hint" style={{ ...label, color: C.text }}>
-        {introCopy.clickHint}
+        {copy.clickHint}
       </div>
     </div>
   );
@@ -165,16 +170,19 @@ const css = `
 .azi-btn-ghost:hover { border-color:${C.text}; }
 .azi-title { font-family:${F.display}; font-size:clamp(40px, 7.2vw, 96px); letter-spacing:clamp(10px, 2vw, 28px);
   margin-top:18px; padding-left:clamp(10px, 2vw, 28px); line-height:1.05; }
+@media (max-width: 1180px) { .azi-challenge { display:none; } }
 @media (max-width: 760px) {
   .azi-telemetry { padding:10px 16px; gap:10px 18px; justify-content:flex-start; }
   .azi-tel-item:nth-child(1), .azi-tel-hint { display:none; }
-  .azi-topright { display:none; }
+  .azi-challenge { display:none; }
 }
 @keyframes azi-in { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform:none; } }
 `;
 
 /* ------------------------------------------------------------------ main */
-export default function MarsIntro({ onEnter }: MarsIntroProps) {
+export default function MarsIntro({ onEnter, lang = DEFAULT_LANG }: MarsIntroProps) {
+  const copy = introCopy[lang] ?? introCopy.en;
+  const text = brand.text[lang] ?? brand.text.en;
   const reducedMotion = usePrefersReducedMotion();
   const [webgl, setWebgl] = useState<boolean | null>(null);
   const [texUrl, setTexUrl] = useState(TEX_2K);
@@ -182,6 +190,7 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
   const [flying, setFlying] = useState(false);
   const [leaving, setLeaving] = useState(false);
   const fadeRef = useRef<HTMLDivElement>(null);
+  const labelRef = useRef<HTMLDivElement>(null);
   const entered = useRef(false);
 
   useEffect(() => {
@@ -269,7 +278,7 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
                   patchUrl={TEX_JEZERO}
                   flying={flying}
                   reducedMotion={reducedMotion}
-                  showLabel={!hudHidden}
+                  labelRef={labelRef}
                   fadeRef={fadeRef}
                   onPlanetClick={start}
                   onFlightEnd={finish}
@@ -281,6 +290,8 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
         )}
         {webgl === false && fallback}
       </div>
+
+      {webgl === true && <MarkerLabel ref={labelRef} copy={copy} locale={LOCALE[lang]} visible={ready && !hudHidden} />}
 
       {/* grid + vignette */}
       <div
@@ -300,7 +311,6 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
 
       <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', ...hudFade }}>
         <Corner pos="tl" />
-        <Corner pos="tr" />
         <Corner pos="bl" />
         <Corner pos="br" />
       </div>
@@ -338,11 +348,15 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
           <div>
             <div style={{ fontFamily: F.display, fontSize: 20, letterSpacing: 8 }}>{brand.name}</div>
             <div style={{ fontFamily: F.mono, fontSize: 10, letterSpacing: 2, color: C.textDim, marginTop: 4 }}>
-              {introCopy.productLine}
+              {copy.productLine}
             </div>
           </div>
         </div>
-        <div className="azi-topright" style={label}>
+        {/* centered, so the top-right corner stays free for the EN/PT selector (ui-builder) */}
+        <div
+          className="azi-challenge"
+          style={{ ...label, position: 'absolute', left: '50%', transform: 'translateX(-50%)', whiteSpace: 'nowrap' }}
+        >
           {brand.challenge.toUpperCase()}
         </div>
       </div>
@@ -361,11 +375,11 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
         }}
       >
         <div style={{ animation: 'azi-in 900ms ease both' }}>
-          <div style={{ ...label, color: C.accent, letterSpacing: 6 }}>{brand.tagline.toUpperCase()}</div>
+          <div style={{ ...label, color: C.accent, letterSpacing: 6 }}>{text.tagline.toUpperCase()}</div>
           <h1 className="azi-title" style={{ fontWeight: 400, margin: '18px 0 0' }}>
             {brand.name}
           </h1>
-          <div style={{ fontSize: 17, color: C.textDim, marginTop: 16 }}>{brand.subtitle}</div>
+          <div style={{ fontSize: 17, color: C.textDim, marginTop: 16 }}>{text.subtitle}</div>
         </div>
       </div>
 
@@ -382,10 +396,10 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
       >
         <div style={{ display: 'flex', justifyContent: 'center', gap: 16, animation: 'azi-in 900ms 200ms ease both' }}>
         <button type="button" className="azi-btn-primary" onClick={start} autoFocus>
-          {introCopy.enter} ▸
+          {copy.enter} ▸
         </button>
         <button type="button" className="azi-btn-ghost" onClick={quickExit}>
-          {introCopy.skip}
+          {copy.skip}
         </button>
         </div>
       </div>
@@ -404,15 +418,15 @@ export default function MarsIntro({ onEnter }: MarsIntroProps) {
           ...hudFade,
         }}
       >
-        {introCopy.imageryCredit}
+        {copy.imageryCredit}
       </div>
 
       <div style={hudFade}>
-        <Telemetry />
+        <Telemetry copy={copy} lang={lang} />
       </div>
 
       {webgl === false && (
-        <div style={{ position: 'absolute', left: 32, bottom: 96, ...label, color: C.textFaint, zIndex: 3 }}>{introCopy.noWebgl}</div>
+        <div style={{ position: 'absolute', left: 32, bottom: 96, ...label, color: C.textFaint, zIndex: 3 }}>{copy.noWebgl}</div>
       )}
 
       {/* fade to black (driven by the camera rig or quickExit) */}

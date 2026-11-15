@@ -1,16 +1,23 @@
-/** Formatação PT-BR simples (sem Intl, roda igual no servidor e no navegador). */
-export function fmt(v: number, digits = 0): string {
+/** Number formatting per language (LOCALE from @/config/i18n). English is the default. */
+import { DEFAULT_LANG, LOCALE, type Lang } from '@/config/i18n';
+
+const nfCache = new Map<string, Intl.NumberFormat>();
+
+export function fmt(v: number, digits = 0, lang: Lang = DEFAULT_LANG): string {
   if (!Number.isFinite(v)) return '—';
-  const s = v.toFixed(digits);
-  const [int, dec] = s.split('.');
-  const neg = int.startsWith('-');
-  const abs = neg ? int.slice(1) : int;
-  const grouped = abs.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return (neg ? '-' : '') + grouped + (dec ? ',' + dec : '');
+  const key = `${lang}|${digits}`;
+  let nf = nfCache.get(key);
+  if (!nf) {
+    nf = new Intl.NumberFormat(LOCALE[lang] ?? LOCALE.en, { minimumFractionDigits: digits, maximumFractionDigits: digits });
+    nfCache.set(key, nf);
+  }
+  // evita "-0"
+  const out = nf.format(v);
+  return /^-0([.,]0*)?$/.test(out) ? out.slice(1) : out;
 }
 
-export function fmtDist(m: number): string {
-  return m >= 1000 ? `${fmt(m / 1000, 1)} km` : `${fmt(m)} m`;
+export function fmtDist(m: number, lang: Lang = DEFAULT_LANG): string {
+  return m >= 1000 ? `${fmt(m / 1000, 1, lang)} km` : `${fmt(m, 0, lang)} m`;
 }
 
 export function fmtDuration(min: number): string {

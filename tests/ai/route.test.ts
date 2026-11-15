@@ -43,4 +43,11 @@ describe('/api/azimuth', () => {
     expect((await POST(new Request('http://localhost/api/azimuth', { method: 'POST', body: 'not json' }))).status).toBe(400);
     expect(typeof parseRequest({ messages: [{ role: 'user', text: 'oi' }], snapshot: {} })).toBe('string');
   });
+
+  it('parseRequest keeps lang (default en) and missionElapsedMin', () => {
+    const a = parseRequest({ messages: [{ role: 'user', text: 'hi' }], snapshot });
+    const b = parseRequest({ messages: [{ role: 'user', text: 'oi' }], snapshot: { ...snapshot, lang: 'pt', missionElapsedMin: 12 } });
+    expect(typeof a !== 'string' && a.snapshot.lang).toBe('en');
+    expect(typeof b !== 'string' && b.snapshot).toMatchObject({ lang: 'pt', missionElapsedMin: 12 });
+  });
 });

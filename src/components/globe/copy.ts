@@ -1,9 +1,29 @@
+import type { Lang } from '@/config/i18n';
+
 /**
- * Texts specific to the 3D intro. Brand-level strings (name, tagline, subtitle, colors, fonts,
- * sample-data label) come from src/config/brand.ts; these are screen labels only.
- * (Orchestrator: feel free to move these into brand.ts later.)
+ * Screen labels specific to the 3D intro, per language (English is the site default).
+ * Brand-level strings (name, tagline, subtitle, sample-data label) come from brand.text[lang].
  */
-export const introCopy = {
+const en = {
+  productLine: 'INTERPLANETARY GUIDE',
+  youAreHere: 'YOU ARE HERE',
+  placeName: 'JEZERO CRATER',
+  enter: 'ENTER',
+  skip: 'SKIP',
+  clickHint: 'CLICK THE PLANET ▸',
+  air: 'AIR · MEDA',
+  radiation: 'RADIATION · RAD (EST.)',
+  radiationUnit: 'mSv/day',
+  o2: 'SUIT O₂',
+  battery: 'BATTERY',
+  base: 'BASE',
+  imageryCredit: 'Mars imagery: NASA/JPL-Caltech/USGS · Jezero: MRO CTX, NASA/JPL-Caltech/MSSS',
+  noWebgl: '3D view unavailable on this device.',
+};
+
+export type IntroCopy = typeof en;
+
+const pt: IntroCopy = {
   productLine: 'INTERPLANETARY GUIDE',
   youAreHere: 'VOCÊ ESTÁ AQUI',
   placeName: 'CRATERA JEZERO',
@@ -12,9 +32,12 @@ export const introCopy = {
   clickHint: 'CLIQUE NO PLANETA ▸',
   air: 'AR · MEDA',
   radiation: 'RADIAÇÃO · RAD (EST.)',
+  radiationUnit: 'mSv/dia',
   o2: 'O₂ TRAJE',
   battery: 'BATERIA',
   base: 'BASE',
-  imageryCredit: 'Mars imagery: NASA/JPL-Caltech/USGS · Jezero: MRO CTX, NASA/JPL-Caltech/MSSS',
+  imageryCredit: 'Imagens de Marte: NASA/JPL-Caltech/USGS · Jezero: MRO CTX, NASA/JPL-Caltech/MSSS',
   noWebgl: 'Visualização 3D indisponível neste dispositivo.',
-} as const;
+};
+
+export const introCopy: Record<Lang, IntroCopy> = { en, pt };

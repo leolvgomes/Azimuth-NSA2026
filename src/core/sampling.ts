@@ -59,16 +59,23 @@ export function samplePoints(latlngs: LatLng[], data: MapData, tod: TimeOfDay, s
 let routeSeq = 0;
 
 /** Monta a Route a partir de pontos já amostrados. Alertas são preenchidos por quem chama. */
-export function assembleRoute(points: RoutePoint[], profile: RouteProfile, label: string, suit: SuitState): Route {
+/** Builds the Route from sampled points (+ optional stops). Alerts are filled by the caller. */
+export function assembleRoute(
+  points: RoutePoint[], profile: RouteProfile, label: string, suit: SuitState, stops?: Route['stops'],
+): Route {
   const distanceM = points.length ? points[points.length - 1].distM : 0;
   const hrs = cumulativeHours(points);
-  const hours = hrs.length ? hrs[hrs.length - 1] : 0;
+  const walkH = hrs.length ? hrs[hrs.length - 1] : 0;
+  const workH = (stops ?? []).reduce((a, s) => a + Math.max(0, s.workMin), 0) / 60;
+  const hours = walkH + workH;
   const o2Used = hours * suitConfig.o2PctPerHour;
   const batUsed = hours * suitConfig.batteryPctPerHour;
+  const o2Walk = walkH * suitConfig.o2PctPerHour;
+  const batWalk = walkH * suitConfig.batteryPctPerHour;
   let maxSlope = 0;
   for (const p of points) if (p.slopeDeg !== undefined && p.slopeDeg > maxSlope) maxSlope = p.slopeDeg;
   routeSeq = (routeSeq + 1) % 1e6;
-  return {
+  const r: Route = {
     id: `${profile}-${Math.round(distanceM)}-${routeSeq}`,
     profile,
     label,
@@ -77,9 +84,12 @@ export function assembleRoute(points: RoutePoint[], profile: RouteProfile, label
     durationMin: hours * 60,
     o2UsedPct: o2Used,
     batteryUsedPct: batUsed,
-    o2RemainingPct: suit.o2Pct - 2 * o2Used,
-    batteryRemainingPct: suit.batteryPct - 2 * batUsed,
+    // round trip: way out (walk + stops) + walking back along the same path (no margin here)
+    o2RemainingPct: suit.o2Pct - o2Used - o2Walk,
+    batteryRemainingPct: suit.batteryPct - batUsed - batWalk,
     maxSlopeDeg: maxSlope,
     alerts: [],
   };
+  if (stops?.length) r.stops = stops;
+  return r;
 }

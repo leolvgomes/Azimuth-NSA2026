@@ -2,12 +2,16 @@
 import { brand } from '@/config/brand';
 import { BASE } from '@/config/mission';
 import { environment, initialSuitState } from '@/config/suit';
-import { fmtLatLng } from '@/lib/format';
+import { fmtLatLng, upper } from '@/lib/format';
+import { useT } from '@/lib/useT';
 import { Logo } from '@/components/ui/Logo';
 import { SampleTag } from '@/components/ui/SampleTag';
+import { LangSwitch } from '@/components/ui/LangSwitch';
 
-/** Abertura 2D (Tela 1) enquanto o globo 3D (globe-3d) não existe ou carrega. */
+/** Abertura 2D (Tela 1) enquanto o globo 3D (globe-3d) não existe, carrega ou falha. */
 export function IntroFallback({ onEnter, onRescue }: { onEnter: () => void; onRescue?: () => void }) {
+  const { t, lang } = useT();
+  const bt = brand.text[lang];
   return (
     <div className="screen">
       <div
@@ -36,20 +40,23 @@ export function IntroFallback({ onEnter, onRescue }: { onEnter: () => void; onRe
             </div>
           </div>
         </div>
-        <div className="label hidden md:block">{brand.challenge.toUpperCase()}</div>
-        <button type="button" className="btn rescue" onClick={onRescue ?? onEnter}>
-          ⟲ RESGATE
-        </button>
+        <div className="label hidden xl:block">{brand.challenge.toUpperCase()}</div>
+        <div className="flex items-center gap-4">
+          <LangSwitch />
+          <button type="button" className="btn rescue" onClick={onRescue ?? onEnter}>
+            {t('rescue')}
+          </button>
+        </div>
       </div>
 
       <div style={{ position: 'absolute', left: 0, right: 0, top: '16%', textAlign: 'center', zIndex: 3 }}>
         <div className="label" style={{ color: 'var(--accent)', letterSpacing: 6 }}>
-          {brand.tagline.toUpperCase()}
+          {upper(bt.tagline)}
         </div>
         <h1 className="f-display" style={{ fontSize: 'clamp(56px, 7vw, 96px)', letterSpacing: '0.3em', margin: '18px 0 0', paddingLeft: '0.3em' }}>
           {brand.name}
         </h1>
-        <div style={{ fontSize: 17, color: 'var(--text-dim)', marginTop: 16 }}>{brand.subtitle}</div>
+        <div style={{ fontSize: 17, color: 'var(--text-dim)', marginTop: 16 }}>{bt.subtitle}</div>
       </div>
 
       <div style={{ position: 'absolute', left: '50%', top: '52%', zIndex: 3 }}>
@@ -57,10 +64,10 @@ export function IntroFallback({ onEnter, onRescue }: { onEnter: () => void; onRe
         <div style={{ position: 'absolute', left: 9, top: 9, width: 10, height: 10, background: 'var(--accent)', transform: 'rotate(45deg)' }} />
         <div style={{ position: 'absolute', left: 46, top: -18, whiteSpace: 'nowrap' }}>
           <div className="label" style={{ color: 'var(--accent)' }}>
-            VOCÊ ESTÁ AQUI
+            {t('youAreHere')}
           </div>
           <div className="f-mono" style={{ fontSize: 13, marginTop: 6 }}>
-            CRATERA JEZERO
+            {t('jezeroCrater')}
           </div>
           <div className="f-mono" style={{ fontSize: 11, color: 'var(--text-dim)', marginTop: 4 }}>
             {fmtLatLng(BASE)}
@@ -70,11 +77,11 @@ export function IntroFallback({ onEnter, onRescue }: { onEnter: () => void; onRe
 
       <div style={{ position: 'absolute', left: 0, right: 0, top: '66%', display: 'flex', justifyContent: 'center', gap: 16, zIndex: 3 }}>
         <button type="button" className="btn primary" onClick={onEnter} autoFocus>
-          ENTRAR · PLANEJAR ROTA
+          {t('enterPlan')}
         </button>
         {onRescue ? (
           <button type="button" className="btn danger" onClick={onRescue}>
-            MODO RESGATE
+            {t('rescueModeBtn')}
           </button>
         ) : null}
       </div>
@@ -83,10 +90,10 @@ export function IntroFallback({ onEnter, onRescue }: { onEnter: () => void; onRe
         className="flex items-center justify-between"
         style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: 80, borderTop: '1px solid var(--line)', background: 'rgba(5,5,5,0.9)', padding: '0 32px', zIndex: 3, gap: 24 }}
       >
-        <Telemetry label="AR · MEDA" value={`${environment.airTempC} °C · ${environment.pressurePa} Pa`} />
-        <Telemetry label="RADIAÇÃO · RAD (EST.)" value={`${environment.radiationMSvPerDay} mSv/dia`} />
-        <Telemetry label="O₂ TRAJE" value={`${initialSuitState.o2Pct}%`} accent />
-        <Telemetry label="BATERIA" value={`${initialSuitState.batteryPct}%`} />
+        <Telemetry label={`${upper(t('air'))} · MEDA`} value={`${environment.airTempC} °C · ${environment.pressurePa} Pa`} />
+        <Telemetry label={`${upper(t('radiation'))} · RAD (EST.)`} value={`${environment.radiationMSvPerDay} ${t('perDay')}`} />
+        <Telemetry label={`O₂ · ${t('oxygen')}`} value={`${initialSuitState.o2Pct}%`} accent />
+        <Telemetry label={t('battery')} value={`${initialSuitState.batteryPct}%`} />
         <SampleTag />
         <div className="label hidden lg:block" style={{ maxWidth: 360, color: 'var(--text-faint)' }}>
           {brand.credits}

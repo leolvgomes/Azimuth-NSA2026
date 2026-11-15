@@ -13,11 +13,13 @@ import { ReturnPanel, RobotsPanel } from '@/components/panels/RescuePanels';
 import { AzimuthBar } from '@/components/azimuth/AzimuthBar';
 import { ReplyCard } from '@/components/azimuth/ReplyCard';
 import { IntroGate } from '@/components/intro/IntroGate';
+import { useT } from '@/lib/useT';
 
 const LEFT_W = { plan: 300, walk: 340, rescue: 400 } as const;
 const RIGHT_W = { plan: 380, walk: 400, rescue: 380 } as const;
 
 export default function AzimuthApp() {
+  const { t } = useT();
   const mode = useAzimuth((s) => s.mode);
   const init = useAzimuth((s) => s.init);
   const setMode = useAzimuth((s) => s.setMode);
@@ -77,7 +79,7 @@ export default function AzimuthApp() {
 
       {!dataReady ? (
         <div className="absolute z-[960] label" style={{ left: centerLeft, bottom: 200 }}>
-          CARREGANDO DADOS NASA…
+          {t('loadingData')}
         </div>
       ) : null}
 

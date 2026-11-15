@@ -16,8 +16,8 @@ const API = 'https://mars.nasa.gov/rss/api/?feed=raw_images&category=mars2020&fe
 /** Sols chosen near the base (landing site) and along the way to / at the delta front. */
 const SOLS = [16, 28, 46, 102, 152, 204, 285, 363, 415, 437, 464, 592, 640, 706, 762];
 const CAMS: Record<string, string> = {
-  MCZ_LEFT: 'Mastcam-Z esquerda', MCZ_RIGHT: 'Mastcam-Z direita',
-  NAVCAM_LEFT: 'Navcam esquerda', NAVCAM_RIGHT: 'Navcam direita',
+  MCZ_LEFT: 'Mastcam-Z left', MCZ_RIGHT: 'Mastcam-Z right',
+  NAVCAM_LEFT: 'Navcam left', NAVCAM_RIGHT: 'Navcam right',
 };
 
 type RawImg = {
@@ -65,7 +65,7 @@ function nearestPlace(lat: number, lng: number) {
     const d = distM(lat, lng, l.lat, l.lng);
     if (d < bd) { bd = d; best = l; }
   }
-  return { name: best.name, d: bd };
+  return { name: best.name, nameEn: best.nameEn, d: bd };
 }
 
 export async function buildPhotos() {
@@ -94,6 +94,7 @@ export async function buildPhotos() {
         const pos = wp ?? fallback;
         const place = nearestPlace(pos.lat, pos.lon);
         const where = place.d < 600 ? `perto de ${place.name}` : `a ${(place.d / 1000).toFixed(1)} km de ${place.name}`;
+        const whereEn = place.d < 600 ? `near ${place.nameEn ?? place.name}` : `${(place.d / 1000).toFixed(1)} km from ${place.nameEn ?? place.name}`;
         photos.push({
           id: `m20-sol${sol}`,
           src: `/data/rovers/${file}`,
@@ -102,6 +103,7 @@ export async function buildPhotos() {
           sol,
           camera: CAMS[im.camera.instrument],
           caption: `Sol ${sol}: vista do Perseverance ${where}. (${im.imageid})`,
+          captionEn: `Sol ${sol}: Perseverance view ${whereEn}. (${im.imageid})`,
           credit: 'NASA/JPL-Caltech',
           approximatePosition: !wp,
         });

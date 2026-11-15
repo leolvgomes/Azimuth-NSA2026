@@ -595,3 +595,49 @@ button:disabled {
 /* legenda do mapa (painel Camadas) */
 .legend { display: grid; grid-template-columns: 34px 1fr; gap: 6px 10px; align-items: center; margin-top: 12px; }
 .legend .ln { height: 0; border-top-width: 2px; }
+
+/* seletor de idioma */
+.langsw { display: flex; }
+.langsw button {
+  min-width: 48px;
+  min-height: 48px;
+  padding: 0 10px;
+  font-family: var(--font-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 2px;
+  color: var(--text-dim);
+  background: rgba(5, 5, 5, 0.6);
+  border: 1px solid var(--line);
+  margin-left: -1px;
+}
+.langsw button.on { color: #000; background: var(--accent); border-color: var(--accent); }
+.rs .langsw button.on { background: var(--alert); border-color: var(--alert); }
+
+/* alvo científico (mapa + legenda) */
+.sci {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  border: 2px solid var(--accent);
+  color: var(--accent);
+  font-size: 12px;
+  line-height: 1;
+}
+.sci.on { background: var(--accent); color: #000; }
+.sci.hl { box-shadow: 0 0 0 4px rgba(212, 255, 0, 0.25); }
+.leaflet-tooltip.az-tip-sci {
+  background: rgba(5, 5, 5, 0.94);
+  border: 1px solid var(--accent);
+  border-radius: 0;
+  color: var(--text);
+  font-family: var(--font-body), sans-serif;
+  font-size: 12px;
+  max-width: 300px;
+  white-space: normal;
+  box-shadow: none;
+}
+.leaflet-tooltip.az-tip-sci::before { display: none; }
+.hover-dot { width: 14px; height: 14px; border-radius: 50%; background: var(--text); border: 3px solid var(--bg); box-shadow: 0 0 0 2px var(--accent); }
