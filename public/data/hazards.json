@@ -1,0 +1,501 @@
+[
+  {
+    "id": "neretva-vallis",
+    "name": "Neretva Vallis (canal de entrada)",
+    "kind": "channel",
+    "severity": "avoid",
+    "polygon": [
+      [
+        18.61458,
+        77.16113
+      ],
+      [
+        18.61319,
+        77.17855
+      ],
+      [
+        18.60668,
+        77.19609
+      ],
+      [
+        18.5995,
+        77.21204
+      ],
+      [
+        18.59495,
+        77.22721
+      ],
+      [
+        18.59138,
+        77.24651
+      ],
+      [
+        18.57857,
+        77.25678
+      ],
+      [
+        18.56261,
+        77.25103
+      ],
+      [
+        18.54851,
+        77.2458
+      ],
+      [
+        18.55355,
+        77.23068
+      ],
+      [
+        18.56779,
+        77.23597
+      ],
+      [
+        18.57857,
+        77.24076
+      ],
+      [
+        18.5773,
+        77.24049
+      ],
+      [
+        18.58021,
+        77.22335
+      ],
+      [
+        18.58538,
+        77.20614
+      ],
+      [
+        18.59276,
+        77.18969
+      ],
+      [
+        18.59841,
+        77.17485
+      ],
+      [
+        18.59944,
+        77.15987
+      ],
+      [
+        18.61458,
+        77.16113
+      ]
+    ],
+    "advice": "Não desça no leito do vale: paredes íngremes e areia fina; atravesse só por uma rampa mapeada.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; valley walls confirmed by CTX DTM slope"
+  },
+  {
+    "id": "western-breach",
+    "name": "Brecha oeste (Neretva corta a borda)",
+    "kind": "breach",
+    "severity": "avoid",
+    "polygon": [
+      [
+        18.55151,
+        77.24534
+      ],
+      [
+        18.53661,
+        77.24632
+      ],
+      [
+        18.52225,
+        77.25357
+      ],
+      [
+        18.50911,
+        77.26487
+      ],
+      [
+        18.49941,
+        77.27654
+      ],
+      [
+        18.48927,
+        77.26714
+      ],
+      [
+        18.49983,
+        77.25453
+      ],
+      [
+        18.51503,
+        77.24153
+      ],
+      [
+        18.53307,
+        77.23258
+      ],
+      [
+        18.55055,
+        77.23114
+      ],
+      [
+        18.55151,
+        77.24534
+      ]
+    ],
+    "advice": "Passagem estreita entre paredes da borda: evite, risco de queda e deslizamento.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; inlet breach where Neretva Vallis cuts the western rim"
+  },
+  {
+    "id": "west-rim",
+    "name": "Borda oeste da cratera Jezero",
+    "kind": "rim",
+    "severity": "caution",
+    "polygon": [
+      [
+        18.47666,
+        77.2936
+      ],
+      [
+        18.43617,
+        77.28955
+      ],
+      [
+        18.39686,
+        77.28557
+      ],
+      [
+        18.35836,
+        77.28753
+      ],
+      [
+        18.31866,
+        77.2935
+      ],
+      [
+        18.27732,
+        77.29968
+      ],
+      [
+        18.212,
+        77.30377
+      ],
+      [
+        18.21,
+        77.26825
+      ],
+      [
+        18.27426,
+        77.26426
+      ],
+      [
+        18.3139,
+        77.25828
+      ],
+      [
+        18.35518,
+        77.25211
+      ],
+      [
+        18.39766,
+        77.25001
+      ],
+      [
+        18.43935,
+        77.25413
+      ],
+      [
+        18.47984,
+        77.25818
+      ],
+      [
+        18.47666,
+        77.2936
+      ]
+    ],
+    "advice": "Terreno alto e acidentado com encostas >15°: suba só com rota planejada e reserva de O₂.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; rim location from CTX DTM elevation/slope"
+  },
+  {
+    "id": "delta-front-scarp",
+    "name": "Escarpa da frente do delta",
+    "kind": "scarp",
+    "severity": "caution",
+    "polygon": [
+      [
+        18.45687,
+        77.39667
+      ],
+      [
+        18.45822,
+        77.40078
+      ],
+      [
+        18.45969,
+        77.4064
+      ],
+      [
+        18.4603,
+        77.41318
+      ],
+      [
+        18.46148,
+        77.41787
+      ],
+      [
+        18.46423,
+        77.42062
+      ],
+      [
+        18.46863,
+        77.42303
+      ],
+      [
+        18.47425,
+        77.4252
+      ],
+      [
+        18.47879,
+        77.42968
+      ],
+      [
+        18.48174,
+        77.43506
+      ],
+      [
+        18.49319,
+        77.43288
+      ],
+      [
+        18.50599,
+        77.43451
+      ],
+      [
+        18.515,
+        77.43068
+      ],
+      [
+        18.52952,
+        77.4218
+      ],
+      [
+        18.53933,
+        77.41689
+      ],
+      [
+        18.54107,
+        77.42075
+      ],
+      [
+        18.53144,
+        77.42556
+      ],
+      [
+        18.51682,
+        77.43448
+      ],
+      [
+        18.50639,
+        77.43875
+      ],
+      [
+        18.49327,
+        77.43714
+      ],
+      [
+        18.48082,
+        77.43922
+      ],
+      [
+        18.47569,
+        77.43244
+      ],
+      [
+        18.47213,
+        77.42884
+      ],
+      [
+        18.46701,
+        77.42695
+      ],
+      [
+        18.46189,
+        77.4241
+      ],
+      [
+        18.45796,
+        77.41997
+      ],
+      [
+        18.45632,
+        77.41392
+      ],
+      [
+        18.45571,
+        77.40714
+      ],
+      [
+        18.45434,
+        77.40204
+      ],
+      [
+        18.45305,
+        77.39805
+      ],
+      [
+        18.45687,
+        77.39667
+      ]
+    ],
+    "advice": "Escarpa de dezenas de metros: aproxime-se pela base e suba só por uma rampa (ex.: Hawksbill Gap).",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; scarp traced along the eastern/southern delta front, steepness from CTX DTM"
+  },
+  {
+    "id": "floor-trough",
+    "name": "Canal sinuoso no assoalho (pré-delta)",
+    "kind": "channel",
+    "severity": "caution",
+    "polygon": [
+      [
+        18.45108,
+        77.41856
+      ],
+      [
+        18.45241,
+        77.42467
+      ],
+      [
+        18.45335,
+        77.43051
+      ],
+      [
+        18.45607,
+        77.43544
+      ],
+      [
+        18.46114,
+        77.43922
+      ],
+      [
+        18.46613,
+        77.44204
+      ],
+      [
+        18.46845,
+        77.44652
+      ],
+      [
+        18.46577,
+        77.448
+      ],
+      [
+        18.46405,
+        77.44438
+      ],
+      [
+        18.45952,
+        77.44194
+      ],
+      [
+        18.45385,
+        77.43762
+      ],
+      [
+        18.45051,
+        77.43161
+      ],
+      [
+        18.44943,
+        77.42531
+      ],
+      [
+        18.44812,
+        77.41928
+      ],
+      [
+        18.45108,
+        77.41856
+      ]
+    ],
+    "advice": "Depressão rasa com borda irregular: cruze em ângulo reto e devagar, sem pisar na borda.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; sinuous trough/contact on the crater floor between landing site and delta (interpretation approximate)"
+  },
+  {
+    "id": "seitah",
+    "name": "Séítah (dunas e cristas)",
+    "kind": "dune",
+    "severity": "caution",
+    "polygon": [
+      [
+        18.44,
+        77.42
+      ],
+      [
+        18.438,
+        77.44
+      ],
+      [
+        18.432,
+        77.446
+      ],
+      [
+        18.42,
+        77.445
+      ],
+      [
+        18.41,
+        77.435
+      ],
+      [
+        18.408,
+        77.415
+      ],
+      [
+        18.418,
+        77.405
+      ],
+      [
+        18.432,
+        77.408
+      ],
+      [
+        18.44,
+        77.42
+      ]
+    ],
+    "advice": "Areia solta entre cristas rochosas: contorne pela borda leste, como fez o Perseverance.",
+    "source": "Approximate outline from Perseverance traverse (sols 180-380 skirted Séítah's east edge) and CTX texture"
+  },
+  {
+    "id": "seitah-dunes",
+    "name": "Campo de dunas de Séítah",
+    "kind": "dune",
+    "severity": "avoid",
+    "center": {
+      "lat": 18.422,
+      "lng": 77.425
+    },
+    "radiusM": 900,
+    "advice": "Dunas de areia fina: risco de atolar; não atravesse a pé.",
+    "source": "Approximate; Séítah dune/ripple field (NASA/JPL Perseverance mission reports), placed on CTX texture"
+  },
+  {
+    "id": "belva-crater",
+    "name": "Cratera Belva",
+    "kind": "crater",
+    "severity": "avoid",
+    "center": {
+      "lat": 18.4835,
+      "lng": 77.3783
+    },
+    "radiusM": 500,
+    "advice": "Paredes internas íngremes: observe da borda sul, não desça.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline; ~1 km crater on the delta top, Perseverance studied its south rim ~sol 760"
+  },
+  {
+    "id": "floor-crater-n",
+    "name": "Cratera pequena ao norte da base",
+    "kind": "crater",
+    "severity": "caution",
+    "center": {
+      "lat": 18.45729,
+      "lng": 77.44088
+    },
+    "radiusM": 160,
+    "advice": "Pequena cratera de impacto: contorne pela borda.",
+    "source": "Digitized on USGS Mars 2020 TRN CTX orthomosaic 6 m (JEZ_ctx_B_soc_008); approximate outline"
+  }
+]

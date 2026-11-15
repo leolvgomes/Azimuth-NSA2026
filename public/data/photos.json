@@ -1,0 +1,145 @@
+[
+  {
+    "id": "m20-sol46",
+    "src": "/data/rovers/m20_sol0046_nlf.jpg",
+    "lat": 18.44494,
+    "lng": 77.45102,
+    "sol": 46,
+    "camera": "Navcam esquerda",
+    "caption": "Sol 46: vista do Perseverance perto de Octavia E. Butler Landing. (NLF_0046_0671021289_037EBY_N0031416NCAM00299_06_0LLJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol102",
+    "src": "/data/rovers/m20_sol0102_zl0.jpg",
+    "lat": 18.44376,
+    "lng": 77.45216,
+    "sol": 102,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 102: vista do Perseverance perto de Octavia E. Butler Landing. (ZL0_0102_0675991314_874ECM_N0040218ZCAM08061_110085J)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol152",
+    "src": "/data/rovers/m20_sol0152_zl0.jpg",
+    "lat": 18.42998,
+    "lng": 77.45215,
+    "sol": 152,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 152: vista do Perseverance a 0.9 km de Octavia E. Butler Landing. (ZL0_0152_0680429877_553EBY_N0051812ZCAM08163_0630LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol204",
+    "src": "/data/rovers/m20_sol0204_zl0.jpg",
+    "lat": 18.43333,
+    "lng": 77.44225,
+    "sol": 204,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 204: vista do Perseverance a 0.8 km de Octavia E. Butler Landing. (ZL0_0204_0685052937_206ECM_N0071716ZCAM08228_110085J)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol285",
+    "src": "/data/rovers/m20_sol0285_zl0.jpg",
+    "lat": 18.43277,
+    "lng": 77.44145,
+    "sol": 285,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 285: vista do Perseverance a 0.9 km de Octavia E. Butler Landing. (ZL0_0285_0692249894_784EBY_N0080734ZCAM08306_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol363",
+    "src": "/data/rovers/m20_sol0363_zl0.jpg",
+    "lat": 18.4439,
+    "lng": 77.45243,
+    "sol": 363,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 363: vista do Perseverance perto de Octavia E. Butler Landing. (ZL0_0363_0699161521_473EBY_N0110108ZCAM08393_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol415",
+    "src": "/data/rovers/m20_sol0415_zl0.jpg",
+    "lat": 18.44941,
+    "lng": 77.40519,
+    "sol": 415,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 415: vista do Perseverance perto de Enchanted Lake. (ZL0_0415_0703793521_348EBY_N0230824ZCAM08430_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol437",
+    "src": "/data/rovers/m20_sol0437_zl0.jpg",
+    "lat": 18.45598,
+    "lng": 77.40846,
+    "sol": 437,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 437: vista do Perseverance perto de Frente do delta (Hawksbill Gap). (ZL0_0437_0705726638_519EBY_N0243900ZCAM08454_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol464",
+    "src": "/data/rovers/m20_sol0464_zl0.jpg",
+    "lat": 18.45869,
+    "lng": 77.40614,
+    "sol": 464,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 464: vista do Perseverance perto de Frente do delta (Hawksbill Gap). (ZL0_0464_0708122262_318EBY_N0260630ZCAM03377_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol592",
+    "src": "/data/rovers/m20_sol0592_nlf.jpg",
+    "lat": 18.45136,
+    "lng": 77.40133,
+    "sol": 592,
+    "camera": "Navcam esquerda",
+    "caption": "Sol 592: vista do Perseverance perto de Depósito Three Forks. (NLF_0592_0719509611_288ECM_N0290144NCAM12592_01_195J)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol640",
+    "src": "/data/rovers/m20_sol0640_zl0.jpg",
+    "lat": 18.45133,
+    "lng": 77.40126,
+    "sol": 640,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 640: vista do Perseverance perto de Depósito Three Forks. (ZL0_0640_0723761753_900EBY_N0310000ZCAM03498_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol706",
+    "src": "/data/rovers/m20_sol0706_zl6.jpg",
+    "lat": 18.45821,
+    "lng": 77.4087,
+    "sol": 706,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 706: vista do Perseverance perto de Frente do delta (Hawksbill Gap). (ZL6_0706_0729614870_894EBY_N0330402ZCAM03545_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  },
+  {
+    "id": "m20-sol762",
+    "src": "/data/rovers/m20_sol0762_zl0.jpg",
+    "lat": 18.47393,
+    "lng": 77.37705,
+    "sol": 762,
+    "camera": "Mastcam-Z esquerda",
+    "caption": "Sol 762: vista do Perseverance perto de Cratera Belva. (ZL0_0762_0734600847_303EBY_N0374972ZCAM08775_1100LMJ)",
+    "credit": "NASA/JPL-Caltech",
+    "approximatePosition": false
+  }
+]

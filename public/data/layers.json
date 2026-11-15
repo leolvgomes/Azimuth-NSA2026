@@ -1,0 +1,250 @@
+[
+  {
+    "id": "ctx",
+    "label": "CTX",
+    "sublabel": "Imagem óptica 6 m (base)",
+    "url": "/data/ctx/jezero-ctx.webp",
+    "type": "image",
+    "attribution": "NASA/JPL/MSSS MRO CTX; USGS Astrogeology Mars 2020 TRN mosaic",
+    "maxNativeZoom": 15,
+    "opacity": 1,
+    "verified": true,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "L.imageOverlay(url, bounds). Preview: /data/ctx/jezero-ctx-preview.webp"
+  },
+  {
+    "id": "crism",
+    "label": "CRISM",
+    "sublabel": "Minerais: carbonatos (verde)",
+    "url": "/data/crism/jezero-crism-carbonate.webp",
+    "remoteUrl": "https://pds-geosciences.wustl.edu/mro/mro-m-crism-5-rdr-mptargeted-v1/mrocr_4001/browse/2007/2007_139/frt00005c5e/frt00005c5e_07_brcarj_mtr3.png",
+    "type": "image",
+    "attribution": "NASA/JPL/JHUAPL MRO CRISM (MTRDR FRT00005C5E, CAR browse), PDS Geosciences Node",
+    "maxNativeZoom": 13,
+    "opacity": 0.7,
+    "verified": true,
+    "bounds": [
+      [
+        18.364672,
+        77.279195
+      ],
+      [
+        18.635047,
+        77.558793
+      ]
+    ],
+    "note": "L.imageOverlay(url, bounds). Green/yellow = Mg-carbonate signature (BD2500/D2300), strongest on the western margin and delta; transparent outside the CRISM footprint (covers delta + landing site, not the full CTX area)."
+  },
+  {
+    "id": "viking",
+    "label": "Viking",
+    "sublabel": "Mosaico global colorido",
+    "url": "/tiles/viking/{z}/{y}/{x}.jpg",
+    "type": "wmts",
+    "attribution": "NASA/JPL/USGS Viking MDIM 2.1 via Mars Trek",
+    "maxNativeZoom": 7,
+    "opacity": 1,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_Viking_MDIM21_ClrMosaic_global_232m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+    "minZoom": 4,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z4-7 (7 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "mola-color",
+    "label": "MOLA",
+    "sublabel": "Relevo colorido (altitude)",
+    "url": "/tiles/mola-color/{z}/{y}/{x}.jpg",
+    "type": "wmts",
+    "attribution": "NASA/JPL/GSFC MGS MOLA via Mars Trek",
+    "maxNativeZoom": 7,
+    "opacity": 0.7,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MGS_MOLA_ClrShade_merge_global_463m/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+    "minZoom": 4,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z4-7 (7 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "mola-hrsc-color",
+    "label": "MOLA + HRSC",
+    "sublabel": "Relevo colorido 200 m",
+    "url": "/tiles/mola-hrsc-color/{z}/{y}/{x}.jpg",
+    "type": "wmts",
+    "attribution": "NASA/JPL/GSFC MOLA, ESA/DLR/FU Berlin HRSC via Mars Trek",
+    "maxNativeZoom": 8,
+    "opacity": 0.7,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MOLA_blend200ppx_HRSC_ClrShade_clon0dd_200mpp_lzw/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+    "minZoom": 5,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z5-8 (10 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "mola-hillshade",
+    "label": "MOLA sombreado",
+    "sublabel": "Relevo sombreado 200 m",
+    "url": "/tiles/mola-hillshade/{z}/{y}/{x}.jpg",
+    "type": "wmts",
+    "attribution": "NASA/JPL/GSFC MOLA, ESA/DLR/FU Berlin HRSC via Mars Trek",
+    "maxNativeZoom": 8,
+    "opacity": 0.6,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/Mars_MOLA_blend200ppx_HRSC_Shade_clon0dd_200mpp_lzw/1.0.0/default/default028mm/{z}/{y}/{x}.jpg",
+    "minZoom": 5,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z5-8 (10 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "themis-day",
+    "label": "THEMIS dia",
+    "sublabel": "Infravermelho térmico diurno",
+    "url": "/tiles/themis-day/{z}/{y}/{x}.png",
+    "type": "wmts",
+    "attribution": "NASA/JPL/ASU Mars Odyssey THEMIS via Mars Trek",
+    "maxNativeZoom": 9,
+    "opacity": 0.75,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_DayIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+    "minZoom": 6,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z6-9 (18 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "themis-night",
+    "label": "THEMIS noite",
+    "sublabel": "Infravermelho térmico noturno",
+    "url": "/tiles/themis-night/{z}/{y}/{x}.png",
+    "type": "wmts",
+    "attribution": "NASA/JPL/ASU Mars Odyssey THEMIS via Mars Trek",
+    "maxNativeZoom": 9,
+    "opacity": 0.75,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/tiles/Mars/EQ/THEMIS_NightIR_ControlledMosaics_100m_v2_oct2018/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+    "minZoom": 6,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z6-9 (18 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "geology",
+    "label": "Geologia USGS",
+    "sublabel": "Mapa geológico global (SIM 3292)",
+    "url": "/tiles/geology/{z}/{y}/{x}.png",
+    "type": "wmts",
+    "attribution": "USGS Astrogeology, Tanaka et al. 2014 (SIM 3292) via Mars Trek",
+    "maxNativeZoom": 9,
+    "opacity": 0.55,
+    "verified": true,
+    "remoteUrl": "https://trek.nasa.gov/mars/trekarcgis/rest/services/SIM3292_Global_Geology/MapServer/WMTS/tile/1.0.0/SIM3292_Global_Geology/default/default028mm/{z}/{y}/{x}.png",
+    "minZoom": 6,
+    "bounds": [
+      [
+        18.211,
+        77.1605
+      ],
+      [
+        18.7212,
+        77.6992
+      ]
+    ],
+    "note": "Local copy covers Jezero only, z6-9 (18 tiles); use remoteUrl outside Jezero/other zooms."
+  },
+  {
+    "id": "ctx-trek",
+    "label": "CTX (Mars Trek)",
+    "sublabel": "Jezero 6 m, controlado",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/JEZ_ctx_B_soc_008_orthoMosaic_6m_Eqc_latTs0_lon0/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+    "type": "wmts",
+    "attribution": "NASA/JPL/MSSS MRO CTX, USGS via Mars Trek",
+    "maxNativeZoom": 13,
+    "opacity": 1,
+    "verified": true
+  },
+  {
+    "id": "hirise-trek",
+    "label": "HiRISE",
+    "sublabel": "Jezero 25 cm, controlado",
+    "url": "https://trek.nasa.gov/tiles/Mars/EQ/JEZ_hirise_soc_006_orthoMosaic_25cm_Eqc_latTs0_lon0_first_dd/1.0.0/default/default028mm/{z}/{y}/{x}.png",
+    "type": "wmts",
+    "attribution": "NASA/JPL/University of Arizona MRO HiRISE, USGS via Mars Trek",
+    "maxNativeZoom": 17,
+    "opacity": 1,
+    "verified": true
+  },
+  {
+    "id": "usgs-wms-mola",
+    "label": "MOLA (USGS WMS)",
+    "sublabel": "Relevo colorido via WMS",
+    "url": "https://planetarymaps.usgs.gov/cgi-bin/mapserv?map=/maps/mars/mars_simp_cyl.map",
+    "type": "wms",
+    "wmsLayers": "MOLA_color",
+    "attribution": "USGS Astrogeology / NASA MOLA",
+    "maxNativeZoom": 9,
+    "opacity": 0.7,
+    "verified": true,
+    "note": "L.tileLayer.wms(url, { layers: wmsLayers, format: \"image/png\", transparent: true }) with CRS EPSG:4326"
+  }
+]

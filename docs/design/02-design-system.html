@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Azimuth — Design System</title>
+<style>
+  :root {
+    --bg: #050505; --surface: #0E0E0E; --surface-2: #161616; --line: #2A2A2A; --line-strong: #3A3A3A;
+    --text: #EDEDED; --text-dim: #8A8A8A; --text-faint: #5A5A5A;
+    --accent: #D4FF00; --accent-dim: rgba(212,255,0,0.12);
+    --alert: #E35D3F; --alert-bg: #1A0B08; --alert-text: #F2B5A6;
+    --ok: #7BE495; --mars: #C1440E;
+    --font-display: 'Michroma', sans-serif; --font-body: 'Montserrat', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); width: 1800px; }
+  .page { padding: 80px; display: flex; flex-direction: column; gap: 72px; }
+  .eyebrow { font-family: var(--font-mono); font-size: 13px; letter-spacing: 3px; color: var(--accent); text-transform: uppercase; }
+  h1 { font-family: var(--font-display); font-size: 52px; letter-spacing: 12px; font-weight: 400; margin-top: 12px; }
+  h2 { font-family: var(--font-display); font-size: 22px; letter-spacing: 6px; font-weight: 400; margin-bottom: 28px; }
+  .sub { color: var(--text-dim); font-size: 17px; margin-top: 12px; line-height: 1.5; max-width: 1100px; }
+  section { border-top: 1px solid var(--line); padding-top: 36px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 24px; }
+
+  .swatch { width: 190px; display: flex; flex-direction: column; gap: 10px; }
+  .chip { height: 110px; border: 1px solid var(--line-strong); }
+  .sw-name { font-family: var(--font-mono); font-size: 13px; letter-spacing: 1px; }
+  .sw-hex { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+  .sw-use { font-size: 12px; color: var(--text-faint); line-height: 1.4; }
+
+  .type-row { display: flex; align-items: baseline; gap: 40px; padding: 18px 0; border-bottom: 1px solid #1A1A1A; }
+  .type-meta { width: 260px; font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); letter-spacing: 1px; flex-shrink: 0; }
+
+  /* HUD frame with corner brackets */
+  .hud { position: relative; background: var(--surface); border: 1px solid var(--line); padding: 24px; }
+  .hud .c { position: absolute; width: 14px; height: 14px; border-color: var(--accent); border-style: solid; }
+  .hud .tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; }
+  .hud .tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .hud .bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; }
+  .hud .br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .hud-label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+
+  .comp { display: flex; flex-direction: column; gap: 14px; }
+  .comp-name { font-family: var(--font-mono); font-size: 12px; color: var(--accent); letter-spacing: 2px; }
+  .comp-note { font-size: 12px; color: var(--text-faint); }
+
+  .btn { height: 64px; padding: 0 32px; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: var(--font-display); font-size: 14px; letter-spacing: 3px; text-transform: uppercase; border: 1px solid var(--line-strong); color: var(--text); background: transparent; }
+  .btn.primary { background: var(--accent); color: #050505; border-color: var(--accent); }
+  .btn.ghost { border-color: var(--accent); color: var(--accent); }
+  .btn.rescue { background: var(--alert); border-color: var(--alert); color: #0A0A0A; height: 72px; padding: 0 40px; font-size: 16px; }
+  .btn.icon { width: 64px; padding: 0; }
+
+  .toggle { width: 300px; height: 56px; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; border: 1px solid var(--line); background: var(--surface); }
+  .toggle .l { display: flex; flex-direction: column; gap: 3px; }
+  .toggle .n { font-size: 14px; font-weight: 600; }
+  .toggle .s { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); letter-spacing: 1px; }
+  .switch { width: 44px; height: 24px; border: 1px solid var(--line-strong); position: relative; }
+  .switch .k { position: absolute; top: 3px; left: 3px; width: 16px; height: 16px; background: var(--text-faint); }
+  .toggle.on { border-color: var(--accent); }
+  .toggle.on .switch { border-color: var(--accent); background: var(--accent-dim); }
+  .toggle.on .switch .k { left: 23px; background: var(--accent); }
+
+  .alert { width: 420px; display: flex; gap: 14px; padding: 16px 18px; background: var(--alert-bg); border: 1px solid var(--alert); border-left-width: 4px; }
+  .alert .ic { width: 28px; height: 28px; border: 2px solid var(--alert); color: var(--alert); font-family: var(--font-mono); font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .alert .t { font-family: var(--font-display); font-size: 13px; letter-spacing: 2px; color: var(--alert); }
+  .alert .d { font-size: 13px; color: var(--alert-text); line-height: 1.45; margin-top: 4px; }
+  .alert .act { font-size: 13px; color: #FFFFFF; font-weight: 600; margin-top: 6px; }
+
+  .gauge { width: 300px; display: flex; flex-direction: column; gap: 8px; }
+  .gauge .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .gauge .v { font-family: var(--font-mono); font-size: 26px; }
+  .bar { height: 8px; background: #1E1E1E; position: relative; }
+  .bar .f { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); }
+  .slider { height: 2px; background: var(--line-strong); position: relative; margin-top: 10px; }
+  .slider .f { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); }
+  .slider .th { position: absolute; top: -9px; width: 20px; height: 20px; background: var(--bg); border: 2px solid var(--accent); }
+  .sample { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--alert); border: 1px solid var(--alert); padding: 3px 8px; display: inline-block; }
+
+  .opt { width: 280px; border: 1px solid var(--line); background: var(--surface); padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+  .opt.sel { border-color: var(--accent); }
+  .opt .h { display: flex; justify-content: space-between; align-items: center; }
+  .opt .name { font-family: var(--font-display); font-size: 14px; letter-spacing: 3px; }
+  .opt .tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 1px; background: var(--accent); color: #000; padding: 3px 6px; }
+  .kv { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-dim); }
+  .kv b { font-family: var(--font-mono); color: var(--text); font-weight: 500; }
+  .kv b.r { color: var(--alert); }
+
+  .chat { width: 760px; height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 12px 0 22px; background: rgba(14,14,14,0.92); border: 1px solid var(--line-strong); }
+  .chat .dot { width: 10px; height: 10px; background: var(--accent); }
+  .chat .ph { flex: 1; font-size: 15px; color: var(--text-faint); }
+  .chat .who { font-family: var(--font-display); font-size: 12px; letter-spacing: 3px; color: var(--accent); }
+  .reply { width: 420px; padding: 18px 20px; background: rgba(14,14,14,0.95); border: 1px solid var(--line-strong); border-top: 2px solid var(--accent); display: flex; flex-direction: column; gap: 10px; }
+  .reply .who { font-family: var(--font-display); font-size: 11px; letter-spacing: 3px; color: var(--accent); }
+  .reply .txt { font-size: 14px; line-height: 1.5; }
+  .reply .acts { display: flex; gap: 10px; }
+  .mini { height: 40px; padding: 0 16px; display: flex; align-items: center; font-family: var(--font-mono); font-size: 12px; letter-spacing: 1px; border: 1px solid var(--accent); color: var(--accent); }
+  .mini.f { background: var(--accent); color: #000; }
+
+  .marker { display: flex; align-items: center; gap: 10px; font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; }
+  .pin { width: 18px; height: 18px; border: 2px solid var(--accent); transform: rotate(45deg); }
+  .pin.r { border-color: var(--alert); background: var(--alert-bg); }
+  .pin.base { background: var(--accent); }
+  .ring { width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--text); }
+</style>
+</head>
+<body>
+<div class="page">
+  <div>
+    <div class="eyebrow">Azimuth · Design System v0.1 · rascunho para a Clara aprovar</div>
+    <h1>DESIGN SYSTEM</h1>
+    <div class="sub">Baseado no board do Pinterest: preto puro, ar de planta de missão, cantos de HUD, títulos largos e uma única cor de destaque. Tudo aqui vira variáveis em <b>src/config/brand.ts</b>: trocar cor, fonte ou nome é mudar uma linha.</div>
+  </div>
+
+  <section>
+    <h2>CORES</h2>
+    <div class="grid">
+      <div class="swatch"><div class="chip" style="background:#050505"></div><div class="sw-name">bg</div><div class="sw-hex">#050505</div><div class="sw-use">Fundo de tudo</div></div>
+      <div class="swatch"><div class="chip" style="background:#0E0E0E"></div><div class="sw-name">surface</div><div class="sw-hex">#0E0E0E</div><div class="sw-use">Painéis, cards</div></div>
+      <div class="swatch"><div class="chip" style="background:#2A2A2A"></div><div class="sw-name">line</div><div class="sw-hex">#2A2A2A</div><div class="sw-use">Bordas, grade</div></div>
+      <div class="swatch"><div class="chip" style="background:#EDEDED"></div><div class="sw-name">text</div><div class="sw-hex">#EDEDED</div><div class="sw-use">Texto principal</div></div>
+      <div class="swatch"><div class="chip" style="background:#8A8A8A"></div><div class="sw-name">text-dim</div><div class="sw-hex">#8A8A8A</div><div class="sw-use">Rótulos, apoio</div></div>
+      <div class="swatch"><div class="chip" style="background:#D4FF00"></div><div class="sw-name">accent</div><div class="sw-hex">#D4FF00</div><div class="sw-use">Destaque, rota ativa, foco (alternativa: #4FE3FF)</div></div>
+      <div class="swatch"><div class="chip" style="background:#E35D3F"></div><div class="sw-name">alert</div><div class="sw-hex">#E35D3F</div><div class="sw-use">Perigo e modo Resgate. Só para isso.</div></div>
+      <div class="swatch"><div class="chip" style="background:#1A0B08"></div><div class="sw-name">alert-bg</div><div class="sw-hex">#1A0B08</div><div class="sw-use">Fundo de alerta</div></div>
+      <div class="swatch"><div class="chip" style="background:#C1440E"></div><div class="sw-name">mars</div><div class="sw-hex">#C1440E</div><div class="sw-use">Só no globo 3D</div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>TIPOGRAFIA</h2>
+    <div class="type-row"><div class="type-meta">DISPLAY · Michroma 72 / +14</div><div style="font-family:var(--font-display);font-size:72px;letter-spacing:14px">AZIMUTH</div></div>
+    <div class="type-row"><div class="type-meta">H1 · Michroma 32 / +6</div><div style="font-family:var(--font-display);font-size:32px;letter-spacing:6px">CRATERA JEZERO</div></div>
+    <div class="type-row"><div class="type-meta">H2 · Michroma 16 / +3</div><div style="font-family:var(--font-display);font-size:16px;letter-spacing:3px">DOSSIÊ DA ROTA</div></div>
+    <div class="type-row"><div class="type-meta">BODY · Montserrat 16 / 150%</div><div style="font-size:16px;line-height:1.5;max-width:900px">Trecho 3 passa a 400 m da brecha oeste. Inclinação de 18°. Siga pela trilha do Perseverance, 120 m ao sul.</div></div>
+    <div class="type-row"><div class="type-meta">BODY-SM · Montserrat 13</div><div style="font-size:13px;color:var(--text-dim)">Temperatura da superfície aproximada (THEMIS, brilho térmico).</div></div>
+    <div class="type-row"><div class="type-meta">DATA · JetBrains Mono 28</div><div style="font-family:var(--font-mono);font-size:28px">72%  ·  4.8 KM  ·  −63 °C</div></div>
+    <div class="type-row"><div class="type-meta">LABEL · JetBrains Mono 11 / +2</div><div style="font-family:var(--font-mono);font-size:11px;letter-spacing:2px;color:var(--text-dim)">18.4447° N · 77.4508° E · SOL 1342</div></div>
+  </section>
+
+  <section>
+    <h2>COMPONENTES</h2>
+    <div class="grid" style="gap:48px">
+      <div class="comp"><div class="comp-name">BUTTON · 64px (luva)</div>
+        <div style="display:flex;gap:16px">
+          <div class="btn primary">Planejar rota</div>
+          <div class="btn ghost">Camadas</div>
+          <div class="btn">Alertas</div>
+          <div class="btn icon">◎</div>
+        </div>
+        <div class="comp-note">Alvo mínimo 64×64. Texto sempre em maiúsculo.</div>
+      </div>
+      <div class="comp"><div class="comp-name">RESCUE BUTTON · sempre visível</div>
+        <div class="btn rescue">⟲ Resgate</div>
+        <div class="comp-note">Canto superior direito em todas as telas.</div>
+      </div>
+    </div>
+
+    <div class="grid" style="gap:48px;margin-top:48px">
+      <div class="comp"><div class="comp-name">HUD PANEL</div>
+        <div class="hud" style="width:360px">
+          <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+          <div class="hud-label">Painel · título</div>
+          <div style="margin-top:12px;font-size:14px;color:var(--text-dim);line-height:1.5">Cantos em L marcam todo painel flutuante sobre o mapa.</div>
+        </div>
+      </div>
+      <div class="comp"><div class="comp-name">LAYER TOGGLE</div>
+        <div class="toggle on"><div class="l"><div class="n">Relevo</div><div class="s">MOLA · HILLSHADE</div></div><div class="switch"><div class="k"></div></div></div>
+        <div class="toggle"><div class="l"><div class="n">Mineral</div><div class="s">CRISM · CARBONATOS</div></div><div class="switch"><div class="k"></div></div></div>
+      </div>
+      <div class="comp"><div class="comp-name">ALERT · diz o que fazer</div>
+        <div class="alert"><div class="ic">!</div><div><div class="t">FRIO DEMAIS · TRECHO 4</div><div class="d">−92 °C à noite. O traje aguenta até −80 °C.</div><div class="act">→ Atravesse antes das 16h ou use a rota equilibrada.</div></div></div>
+      </div>
+    </div>
+
+    <div class="grid" style="gap:48px;margin-top:48px">
+      <div class="comp"><div class="comp-name">SUIT GAUGE + SLIDER</div>
+        <div class="gauge"><div class="top"><span class="hud-label">Oxigênio</span><span class="v">72%</span></div><div class="bar"><div class="f" style="width:72%"></div></div><div class="slider"><div class="f" style="width:72%"></div><div class="th" style="left:207px"></div></div></div>
+        <div class="sample">DADOS DE EXEMPLO</div>
+      </div>
+      <div class="comp"><div class="comp-name">ROUTE OPTION CARD</div>
+        <div style="display:flex;gap:16px">
+          <div class="opt sel"><div class="h"><span class="name">SEGURA</span><span class="tag">RECOMENDADA</span></div><div class="kv">Distância<b>6.2 km</b></div><div class="kv">Tempo<b>2h 05</b></div><div class="kv">O₂ que sobra<b>41%</b></div><div class="kv">Alertas<b>0</b></div></div>
+          <div class="opt"><div class="h"><span class="name">RÁPIDA</span></div><div class="kv">Distância<b>4.1 km</b></div><div class="kv">Tempo<b>1h 22</b></div><div class="kv">O₂ que sobra<b>55%</b></div><div class="kv">Alertas<b class="r">2</b></div></div>
+        </div>
+      </div>
+      <div class="comp"><div class="comp-name">MAP MARKERS</div>
+        <div class="marker"><div class="pin base"></div>BASE / ABRIGO</div>
+        <div class="marker"><div class="pin"></div>PONTO DA ROTA</div>
+        <div class="marker"><div class="pin r"></div>PERIGO</div>
+        <div class="marker"><div class="ring"></div>FOTO DO ROVER</div>
+        <div class="marker"><div style="width:40px;border-top:2px dashed #EDEDED"></div>TRILHA PERSEVERANCE</div>
+        <div class="marker"><div style="width:40px;border-top:3px solid #D4FF00"></div>ROTA ATIVA</div>
+      </div>
+    </div>
+
+    <div class="grid" style="gap:48px;margin-top:48px">
+      <div class="comp"><div class="comp-name">AZIMUTH · CHAT BAR</div>
+        <div class="chat"><div class="dot"></div><div class="who">AZIMUTH</div><div class="ph">Pergunte ou peça uma rota… "me leve até o delta"</div><div class="btn icon" style="height:52px;width:52px">🎙</div><div class="btn primary" style="height:52px;padding:0 20px">Enviar</div></div>
+      </div>
+      <div class="comp"><div class="comp-name">AZIMUTH · REPLY CARD</div>
+        <div class="reply"><div class="who">AZIMUTH</div><div class="txt">Tracei 3 rotas até o delta. A segura evita a brecha oeste e sobra 41% de oxigênio. Quer que eu ative?</div><div class="acts"><div class="mini f">ATIVAR SEGURA</div><div class="mini">COMPARAR</div></div></div>
+      </div>
+    </div>
+  </section>
+</div>
+</body>
+</html>

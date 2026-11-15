@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Azimuth — Telas</title>
+<!-- %%CTX%% is replaced by a base64 PNG of the Jezero CTX mosaic (docs/design/build-telas.py) -->
+<style>
+  :root {
+    --bg: #050505; --surface: #0E0E0E; --line: #2A2A2A; --line-strong: #3A3A3A;
+    --text: #EDEDED; --text-dim: #8A8A8A; --text-faint: #5A5A5A;
+    --accent: #D4FF00; --accent-dim: rgba(212,255,0,0.12);
+    --alert: #E35D3F; --alert-bg: #1A0B08; --alert-text: #F2B5A6;
+    --font-display: 'Michroma', sans-serif; --font-body: 'Montserrat', sans-serif; --font-mono: 'JetBrains Mono', monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #000; font-family: var(--font-body); color: var(--text); display: flex; flex-direction: column; gap: 80px; padding: 40px; width: 1520px; }
+  .screen { width: 1440px; height: 900px; position: relative; overflow: hidden; background: var(--bg); }
+
+  .grid-ov { position: absolute; inset: 0; background-image: linear-gradient(rgba(255,255,255,0.045) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.045) 1px, transparent 1px); background-size: 80px 80px; }
+  .mono { font-family: var(--font-mono); }
+  .label { font-family: var(--font-mono); font-size: 11px; letter-spacing: 2px; color: var(--text-dim); text-transform: uppercase; }
+
+  /* top bar */
+  .topbar { position: absolute; left: 0; right: 0; top: 0; height: 88px; display: flex; align-items: center; justify-content: space-between; padding: 0 24px 0 32px; background: linear-gradient(180deg, rgba(5,5,5,0.95), rgba(5,5,5,0.6)); border-bottom: 1px solid var(--line); z-index: 5; }
+  .brand { display: flex; align-items: center; gap: 16px; }
+  .logo { width: 36px; height: 36px; border: 2px solid var(--accent); display: flex; align-items: center; justify-content: center; transform: rotate(45deg); }
+  .logo div { width: 10px; height: 10px; background: var(--accent); }
+  .brand .n { font-family: var(--font-display); font-size: 20px; letter-spacing: 8px; }
+  .brand .t { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--text-dim); margin-top: 4px; }
+  .crumbs { display: flex; gap: 0; }
+  .crumb { height: 48px; padding: 0 20px; display: flex; align-items: center; font-family: var(--font-mono); font-size: 12px; letter-spacing: 2px; color: var(--text-dim); border: 1px solid var(--line); }
+  .crumb.on { color: #000; background: var(--accent); border-color: var(--accent); }
+  .topright { display: flex; align-items: center; gap: 20px; }
+  .coord { text-align: right; }
+  .coord .a { font-family: var(--font-mono); font-size: 13px; letter-spacing: 1px; }
+  .rescue { height: 64px; padding: 0 28px; background: var(--alert); color: #0A0A0A; font-family: var(--font-display); font-size: 15px; letter-spacing: 4px; display: flex; align-items: center; gap: 12px; }
+
+  /* hud panel */
+  .hud { position: absolute; background: rgba(10,10,10,0.92); border: 1px solid var(--line); padding: 20px; z-index: 4; }
+  .hud .c { position: absolute; width: 12px; height: 12px; border-color: var(--accent); border-style: solid; }
+  .hud .tl { top: -1px; left: -1px; border-width: 2px 0 0 2px; } .hud .tr { top: -1px; right: -1px; border-width: 2px 2px 0 0; }
+  .hud .bl { bottom: -1px; left: -1px; border-width: 0 0 2px 2px; } .hud .br { bottom: -1px; right: -1px; border-width: 0 2px 2px 0; }
+  .hud h3 { font-family: var(--font-display); font-size: 13px; letter-spacing: 3px; font-weight: 400; margin-bottom: 14px; }
+
+  .toggle { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 14px; border: 1px solid var(--line); margin-bottom: 8px; }
+  .toggle .n { font-size: 13px; font-weight: 600; } .toggle .s { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); letter-spacing: 1px; margin-top: 3px; }
+  .sw { width: 40px; height: 22px; border: 1px solid var(--line-strong); position: relative; }
+  .sw .k { position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; background: var(--text-faint); }
+  .toggle.on { border-color: var(--accent); } .toggle.on .sw { border-color: var(--accent); background: var(--accent-dim); } .toggle.on .sw .k { left: 21px; background: var(--accent); }
+  .seg { display: flex; margin-top: 4px; } .seg div { flex: 1; height: 36px; display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; border: 1px solid var(--line); color: var(--text-dim); }
+  .seg .on { border-color: var(--accent); color: var(--accent); }
+
+  .kv { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; border-bottom: 1px solid #1A1A1A; font-size: 12px; color: var(--text-dim); }
+  .kv b { font-family: var(--font-mono); font-size: 13px; color: var(--text); font-weight: 500; } .kv b.r { color: var(--alert); } .kv b.a { color: var(--accent); }
+  .src { font-family: var(--font-mono); font-size: 9px; color: var(--text-faint); letter-spacing: 1px; }
+
+  .opts { display: flex; gap: 8px; }
+  .opt { flex: 1; border: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 6px; }
+  .opt.sel { border-color: var(--accent); background: rgba(212,255,0,0.05); }
+  .opt .nm { font-family: var(--font-display); font-size: 10px; letter-spacing: 2px; }
+  .opt .big { font-family: var(--font-mono); font-size: 18px; }
+  .opt .sm { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+  .opt .sm.r { color: var(--alert); }
+
+  .alertbox { display: flex; gap: 12px; padding: 14px 16px; background: var(--alert-bg); border: 1px solid var(--alert); border-left-width: 4px; }
+  .alertbox .ic { width: 26px; height: 26px; border: 2px solid var(--alert); color: var(--alert); font-family: var(--font-mono); font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 13px; }
+  .alertbox .t { font-family: var(--font-display); font-size: 11px; letter-spacing: 2px; color: var(--alert); }
+  .alertbox .d { font-size: 12px; color: var(--alert-text); margin-top: 4px; line-height: 1.4; }
+  .alertbox .act { font-size: 12px; color: #fff; font-weight: 600; margin-top: 4px; }
+
+  /* bottom suit strip */
+  .suit { position: absolute; left: 0; right: 0; bottom: 0; height: 104px; background: rgba(5,5,5,0.96); border-top: 1px solid var(--line); display: flex; align-items: center; padding: 0 32px; gap: 40px; z-index: 5; }
+  .g { width: 190px; } .g .top { display: flex; justify-content: space-between; align-items: baseline; }
+  .g .v { font-family: var(--font-mono); font-size: 22px; } .g .v.r { color: var(--alert); }
+  .bar { height: 6px; background: #1E1E1E; position: relative; margin-top: 8px; } .bar .f { position: absolute; left: 0; top: 0; bottom: 0; background: var(--accent); } .bar .f.r { background: var(--alert); }
+  .sl { height: 2px; background: var(--line-strong); position: relative; margin-top: 14px; } .sl .th { position: absolute; top: -8px; width: 18px; height: 18px; background: var(--bg); border: 2px solid var(--accent); }
+  .sample { font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--alert); border: 1px solid var(--alert); padding: 4px 8px; }
+  .vsep { width: 1px; height: 56px; background: var(--line); }
+
+  /* chat */
+  .chat { position: absolute; height: 64px; display: flex; align-items: center; gap: 12px; padding: 0 8px 0 20px; background: rgba(10,10,10,0.95); border: 1px solid var(--line-strong); z-index: 6; }
+  .chat .dot { width: 8px; height: 8px; background: var(--accent); }
+  .chat .who { font-family: var(--font-display); font-size: 11px; letter-spacing: 3px; color: var(--accent); }
+  .chat .ph { flex: 1; font-size: 14px; color: var(--text-faint); }
+  .ib { width: 48px; height: 48px; border: 1px solid var(--line-strong); display: flex; align-items: center; justify-content: center; font-size: 18px; }
+  .ib.f { background: var(--accent); border-color: var(--accent); color: #000; font-family: var(--font-mono); font-size: 18px; }
+  .reply { position: absolute; padding: 16px 18px; background: rgba(10,10,10,0.96); border: 1px solid var(--line-strong); border-top: 2px solid var(--accent); z-index: 6; }
+  .reply .who { font-family: var(--font-display); font-size: 10px; letter-spacing: 3px; color: var(--accent); }
+  .reply .txt { font-size: 13px; line-height: 1.5; margin-top: 8px; }
+  .reply .acts { display: flex; gap: 8px; margin-top: 12px; }
+  .mini { height: 40px; padding: 0 14px; display: flex; align-items: center; font-family: var(--font-mono); font-size: 11px; letter-spacing: 1px; border: 1px solid var(--accent); color: var(--accent); }
+  .mini.f { background: var(--accent); color: #000; }
+
+  .map { position: absolute; inset: 0; background: #0B0B0B; overflow: hidden; }
+  .map img { position: absolute; }
+  .map .shade { position: absolute; inset: 0; background: rgba(0,0,0,0.35); }
+  .map svg { position: absolute; inset: 0; }
+  .mlabel { position: absolute; font-family: var(--font-mono); font-size: 10px; letter-spacing: 2px; color: var(--text); background: rgba(5,5,5,0.8); padding: 4px 8px; border: 1px solid var(--line-strong); z-index: 3; }
+  .mlabel.a { border-color: var(--accent); color: var(--accent); }
+  .mlabel.r { border-color: var(--alert); color: var(--alert); }
+
+  .photo { background: linear-gradient(160deg, #6b5a4c 0%, #8d7660 35%, #a58a6d 55%, #3e342c 100%); position: relative; }
+  .photo .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 8px 10px; background: rgba(0,0,0,0.7); font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; color: var(--text-dim); }
+  .tag-sample { position: absolute; top: 8px; left: 8px; font-family: var(--font-mono); font-size: 9px; letter-spacing: 1px; color: #000; background: var(--accent); padding: 3px 6px; }
+
+  /* rescue theme */
+  .rs .topbar { border-bottom-color: var(--alert); }
+  .rs .hud .c { border-color: var(--alert); }
+  .rs .hud { border-color: rgba(227,93,63,0.5); }
+</style>
+</head>
+<body>
+
+<!-- ============ TELA 1 · ABERTURA ============ -->
+<div class="screen" id="tela-1-abertura">
+  <div style="position:absolute;left:170px;top:330px;width:1100px;height:1100px;border-radius:50%;background:radial-gradient(circle at 38% 30%, #E07A45 0%, #C1440E 30%, #7A2A0A 62%, #2A0E04 85%, #050505 100%);"></div>
+  <div style="position:absolute;left:170px;top:330px;width:1100px;height:1100px;border-radius:50%;background:radial-gradient(circle at 70% 18%, rgba(0,0,0,0) 40%, rgba(0,0,0,0.55) 75%);"></div>
+  <div style="position:absolute;left:120px;top:280px;width:1200px;height:1200px;border-radius:50%;border:1px solid rgba(212,255,0,0.18);"></div>
+  <div class="grid-ov"></div>
+
+  <div class="topbar" style="background:transparent;border-bottom:none">
+    <div class="brand"><div class="logo"><div></div></div><div><div class="n">AZIMUTH</div><div class="t">INTERPLANETARY GUIDE</div></div></div>
+    <div class="label">NASA SPACE APPS 2026 · MARTIAN MAP</div>
+    <div class="rescue">⟲ RESGATE</div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;top:150px;text-align:center;z-index:3">
+    <div class="label" style="color:var(--accent);letter-spacing:6px">KNOW THE WAY HOME</div>
+    <div style="font-family:var(--font-display);font-size:96px;letter-spacing:28px;margin-top:18px">AZIMUTH</div>
+    <div style="font-size:17px;color:var(--text-dim);margin-top:16px">O caminho mais seguro em Jezero. E sempre o caminho de volta.</div>
+  </div>
+
+  <!-- você está aqui -->
+  <div style="position:absolute;left:784px;top:470px;width:28px;height:28px;border:2px solid var(--accent);transform:rotate(45deg);z-index:3"></div>
+  <div style="position:absolute;left:793px;top:479px;width:10px;height:10px;background:var(--accent);transform:rotate(45deg);z-index:3"></div>
+  <div style="position:absolute;left:830px;top:452px;z-index:3">
+    <div class="label" style="color:var(--accent)">VOCÊ ESTÁ AQUI</div>
+    <div class="mono" style="font-size:13px;margin-top:6px">CRATERA JEZERO</div>
+    <div class="mono" style="font-size:11px;color:var(--text-dim);margin-top:4px">18.4447° N · 77.4508° E</div>
+  </div>
+  <div style="position:absolute;left:640px;top:484px;width:140px;border-top:1px dashed rgba(212,255,0,0.6);z-index:3"></div>
+
+  <div style="position:absolute;left:0;right:0;top:620px;display:flex;justify-content:center;gap:16px;z-index:3">
+    <div style="height:64px;padding:0 32px;display:flex;align-items:center;background:var(--accent);color:#000;font-family:var(--font-display);font-size:13px;letter-spacing:3px">PLANEJAR ROTA</div>
+    <div style="height:64px;padding:0 32px;display:flex;align-items:center;border:1px solid var(--alert);color:var(--alert);font-family:var(--font-display);font-size:13px;letter-spacing:3px;background:rgba(5,5,5,0.6)">MODO RESGATE</div>
+    <div style="height:64px;padding:0 32px;display:flex;align-items:center;border:1px solid var(--accent);color:var(--accent);font-family:var(--font-display);font-size:13px;letter-spacing:3px;background:rgba(5,5,5,0.6)">CAMADAS</div>
+    <div style="height:64px;padding:0 32px;display:flex;align-items:center;border:1px solid var(--line-strong);font-family:var(--font-display);font-size:13px;letter-spacing:3px;background:rgba(5,5,5,0.6)">ALERTAS · 2</div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:0;height:80px;border-top:1px solid var(--line);background:rgba(5,5,5,0.9);display:flex;align-items:center;justify-content:space-between;padding:0 32px;z-index:3">
+    <div><div class="label">SOL</div><div class="mono" style="font-size:16px;margin-top:4px">1342</div></div>
+    <div><div class="label">AR · MEDA</div><div class="mono" style="font-size:16px;margin-top:4px">−23 °C · 735 Pa</div></div>
+    <div><div class="label">RADIAÇÃO · RAD (EST.)</div><div class="mono" style="font-size:16px;margin-top:4px">0.67 mSv/dia</div></div>
+    <div><div class="label">O₂ TRAJE</div><div class="mono" style="font-size:16px;margin-top:4px;color:var(--accent)">96%</div></div>
+    <div><div class="label">BATERIA</div><div class="mono" style="font-size:16px;margin-top:4px">88%</div></div>
+    <div class="sample">DADOS DE EXEMPLO</div>
+    <div class="label" style="color:var(--text)">CLIQUE NO PLANETA ▸</div>
+  </div>
+</div>
+
+<!-- ============ TELA 2 · MAPA ============ -->
+<div class="screen" id="tela-2-mapa">
+  <div class="map">
+    <img src="%%CTX%%" style="left:76px;top:-166px;width:1530px;height:1449px">
+    <div class="shade"></div>
+    <div class="grid-ov"></div>
+    <svg width="1440" height="900" viewBox="0 0 1440 900">
+      <!-- hazard zones -->
+      <circle cx="390" cy="470" r="70" fill="rgba(227,93,63,0.16)" stroke="#E35D3F" stroke-width="1.5" stroke-dasharray="6 4"/>
+      <path d="M 560 560 C 620 540, 650 600, 700 590" fill="none" stroke="#E35D3F" stroke-width="10" stroke-opacity="0.25"/>
+      <!-- perseverance trail -->
+      <polyline points="900,620 880,645 840,655 790,645 755,612 735,578 712,540 694,500 680,455" fill="none" stroke="#EDEDED" stroke-width="2" stroke-dasharray="6 6" opacity="0.8"/>
+      <!-- fast route -->
+      <polyline points="900,620 845,585 790,560" fill="none" stroke="#EDEDED" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+      <polyline points="790,560 740,560 700,540" fill="none" stroke="#E35D3F" stroke-width="3.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+      <polyline points="700,540 690,500" fill="none" stroke="#EDEDED" stroke-width="2.5" stroke-dasharray="2 6" stroke-linecap="round"/>
+      <!-- safe route (active) -->
+      <polyline points="900,620 872,640 832,648 788,636 758,604 738,570 716,532 700,496 690,500" fill="none" stroke="#D4FF00" stroke-width="4" stroke-linejoin="round"/>
+      <!-- route points -->
+      <rect x="826" y="642" width="12" height="12" transform="rotate(45 832 648)" fill="#050505" stroke="#D4FF00" stroke-width="2"/>
+      <rect x="752" y="598" width="12" height="12" transform="rotate(45 758 604)" fill="#050505" stroke="#D4FF00" stroke-width="2"/>
+      <rect x="710" y="526" width="12" height="12" transform="rotate(45 716 532)" fill="#050505" stroke="#D4FF00" stroke-width="2"/>
+      <!-- target -->
+      <circle cx="690" cy="496" r="16" fill="none" stroke="#D4FF00" stroke-width="2"/>
+      <circle cx="690" cy="496" r="5" fill="#D4FF00"/>
+      <!-- base -->
+      <rect x="890" y="610" width="20" height="20" transform="rotate(45 900 620)" fill="#D4FF00"/>
+      <!-- alert pin -->
+      <rect x="733" y="550" width="16" height="16" transform="rotate(45 741 558)" fill="#1A0B08" stroke="#E35D3F" stroke-width="2"/>
+      <!-- photo rings -->
+      <circle cx="788" cy="636" r="10" fill="none" stroke="#EDEDED" stroke-width="2"/>
+      <circle cx="738" cy="570" r="10" fill="none" stroke="#EDEDED" stroke-width="2"/>
+      <!-- scale -->
+      <line x1="372" y1="740" x2="472" y2="740" stroke="#EDEDED" stroke-width="2"/>
+      <line x1="372" y1="734" x2="372" y2="746" stroke="#EDEDED" stroke-width="2"/>
+      <line x1="472" y1="734" x2="472" y2="746" stroke="#EDEDED" stroke-width="2"/>
+    </svg>
+    <div class="mlabel a" style="left:922px;top:606px">BASE · ABRIGO</div>
+    <div class="mlabel a" style="left:612px;top:462px">DELTA · AMOSTRAS</div>
+    <div class="mlabel r" style="left:338px;top:378px">BRECHA OESTE</div>
+    <div class="mlabel r" style="left:560px;top:600px">CANAL</div>
+    <div class="mlabel" style="left:880px;top:668px">TRILHA PERSEVERANCE</div>
+    <div class="mono" style="position:absolute;left:372px;top:750px;font-size:10px;color:var(--text);letter-spacing:1px;z-index:3">≈ 600 m</div>
+  </div>
+
+  <div class="topbar">
+    <div class="brand"><div class="logo"><div></div></div><div><div class="n">AZIMUTH</div><div class="t">JEZERO · PLANEJAMENTO</div></div></div>
+    <div class="crumbs"><div class="crumb on">01 PLANEJAR</div><div class="crumb">02 CAMINHAR</div><div class="crumb">03 RESGATE</div></div>
+    <div class="topright">
+      <div class="coord"><div class="a">18.4521° N · 77.4389° E</div><div class="label" style="margin-top:4px">CURSOR · ZOOM 14</div></div>
+      <div class="rescue">⟲ RESGATE</div>
+    </div>
+  </div>
+
+  <!-- left: layers -->
+  <div class="hud" style="left:24px;top:112px;width:300px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <h3>CAMADAS</h3>
+    <div class="toggle on"><div><div class="n">Óptica</div><div class="s">CTX · 6 M/PX</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="toggle on"><div><div class="n">Relevo</div><div class="s">MOLA · HILLSHADE</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="toggle"><div><div class="n">Térmica</div><div class="s">THEMIS IR</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="seg" style="margin-bottom:8px"><div class="on">☀ DIA</div><div>☾ NOITE</div></div>
+    <div class="toggle"><div><div class="n">Mineral</div><div class="s">CRISM · CARBONATOS</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="toggle"><div><div class="n">Geologia</div><div class="s">USGS · UNIDADES</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="toggle on"><div><div class="n">Perigos</div><div class="s">CANAIS · BRECHA · DUNAS</div></div><div class="sw"><div class="k"></div></div></div>
+    <div class="toggle on" style="margin-bottom:0"><div><div class="n">Rovers</div><div class="s">TRILHA + FOTOS</div></div><div class="sw"><div class="k"></div></div></div>
+  </div>
+
+  <!-- right: dossier + options -->
+  <div class="hud" style="left:1036px;top:112px;width:380px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <h3>OPÇÕES DE ROTA · BASE → DELTA</h3>
+    <div class="opts">
+      <div class="opt sel"><div class="nm">SEGURA</div><div class="big">6.2 km</div><div class="sm">2h05 · O₂ 41%</div><div class="sm">0 alertas</div></div>
+      <div class="opt"><div class="nm">EQUILIB.</div><div class="big">5.0 km</div><div class="sm">1h41 · O₂ 48%</div><div class="sm r">1 alerta</div></div>
+      <div class="opt"><div class="nm">RÁPIDA</div><div class="big">4.1 km</div><div class="sm">1h22 · O₂ 55%</div><div class="sm r">2 alertas</div></div>
+    </div>
+    <h3 style="margin-top:20px">DOSSIÊ DA ROTA</h3>
+    <div class="kv">Altitude <span class="src">MOLA</span><b>−2.6 → −2.4 km</b></div>
+    <div class="kv">Inclinação máx. <span class="src">MOLA</span><b>9°</b></div>
+    <div class="kv">Temp. superfície <span class="src">THEMIS DIA</span><b>−18 °C</b></div>
+    <div class="kv">Minerais <span class="src">CRISM</span><b class="a">Carbonatos</b></div>
+    <div class="kv">Geologia <span class="src">USGS</span><b>Delta / piso</b></div>
+    <div class="kv">Radiação <span class="src">RAD · EST.</span><b>0.67 mSv/dia</b></div>
+    <div class="kv" style="border-bottom:none">Ponto sem retorno<b class="a">km 3.4</b></div>
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <div class="photo" style="width:120px;height:84px"><div class="cap">NAVCAM · SOL 419</div></div>
+      <div style="flex:1;font-size:12px;color:var(--text-dim);line-height:1.45">Foto real mais próxima do ponto 2. <span style="color:var(--text)">Toque num ponto da rota para trocar.</span></div>
+    </div>
+  </div>
+
+  <!-- floating alert -->
+  <div style="position:absolute;left:356px;top:112px;width:380px;z-index:4">
+    <div class="alertbox"><div class="ic">!</div><div><div class="t">ROTA RÁPIDA · TRECHO 3</div><div class="d">Passa a 150 m do canal. Inclinação 21°.</div><div class="act">→ Prefira a rota segura, pela trilha do Perseverance.</div></div></div>
+  </div>
+
+  <!-- azimuth -->
+  <div class="reply" style="left:356px;top:236px;width:420px">
+    <div class="who">AZIMUTH</div>
+    <div class="txt">Tracei 3 rotas até o delta. A segura segue a trilha do Perseverance, evita o canal e sobram 41% de oxigênio na volta.</div>
+    <div class="acts"><div class="mini f">ATIVAR SEGURA</div><div class="mini">COMPARAR</div><div class="mini">POR QUÊ?</div></div>
+  </div>
+  <div class="chat" style="left:356px;top:712px;width:660px">
+    <div class="dot"></div><div class="who">AZIMUTH</div><div class="ph">"me leve até o delta" · "quanto O₂ tenho de margem?"</div><div class="ib">🎙</div><div class="ib f">↑</div>
+  </div>
+
+  <!-- suit -->
+  <div class="suit">
+    <div class="g"><div class="top"><span class="label">OXIGÊNIO</span><span class="v">72%</span></div><div class="bar"><div class="f" style="width:72%"></div></div><div class="sl"><div class="th" style="left:128px"></div></div></div>
+    <div class="g"><div class="top"><span class="label">BATERIA</span><span class="v">64%</span></div><div class="bar"><div class="f" style="width:64%"></div></div><div class="sl"><div class="th" style="left:113px"></div></div></div>
+    <div class="g"><div class="top"><span class="label">TRAJE · FAIXA</span><span class="v">−80/+30°</span></div><div class="bar"><div class="f" style="width:55%"></div></div><div class="sl"><div class="th" style="left:96px"></div></div></div>
+    <div class="vsep"></div>
+    <div><div class="label">ATÉ O ABRIGO</div><div class="mono" style="font-size:22px;margin-top:6px">0.0 km</div></div>
+    <div><div class="label">AUTONOMIA</div><div class="mono" style="font-size:22px;margin-top:6px">5h 10</div></div>
+    <div style="flex:1"></div>
+    <div class="sample">DADOS DE EXEMPLO</div>
+  </div>
+</div>
+
+<!-- ============ TELA 3 · CAMINHADA ============ -->
+<div class="screen" id="tela-3-caminhada">
+  <div class="map">
+    <img src="%%CTX%%" style="left:-1060px;top:-1110px;width:3060px;height:2898px">
+    <div class="shade" style="background:rgba(0,0,0,0.3)"></div>
+    <div class="grid-ov"></div>
+    <svg width="1440" height="900" viewBox="0 0 1440 900">
+      <polyline points="980,760 900,780 820,770 740,700 700,620 650,540 610,460" fill="none" stroke="#D4FF00" stroke-width="5" stroke-opacity="0.35"/>
+      <polyline points="610,460 560,380 520,320 500,300" fill="none" stroke="#D4FF00" stroke-width="5" stroke-linejoin="round"/>
+      <polyline points="740,700 700,620 650,540 610,460" fill="none" stroke="#D4FF00" stroke-width="5"/>
+      <rect x="725" y="685" width="30" height="30" transform="rotate(45 740 700)" fill="#D4FF00" stroke="#050505" stroke-width="3"/>
+      <circle cx="740" cy="700" r="46" fill="none" stroke="#D4FF00" stroke-width="1.5" stroke-dasharray="4 6"/>
+      <circle cx="500" cy="300" r="22" fill="none" stroke="#D4FF00" stroke-width="2.5"/>
+      <circle cx="500" cy="300" r="7" fill="#D4FF00"/>
+      <rect x="633" y="523" width="34" height="34" transform="rotate(45 650 540)" fill="none" stroke="#EDEDED" stroke-width="2"/>
+      <path d="M 430 600 C 520 560, 560 640, 640 620" fill="none" stroke="#E35D3F" stroke-width="18" stroke-opacity="0.25"/>
+    </svg>
+    <div class="mlabel a" style="left:790px;top:688px">VOCÊ · km 1.8</div>
+    <div class="mlabel a" style="left:530px;top:286px">DELTA · 4.4 km</div>
+    <div class="mlabel" style="left:676px;top:526px">PONTO SEM RETORNO · km 3.4</div>
+    <div class="mlabel r" style="left:420px;top:640px">CANAL · 150 m</div>
+  </div>
+
+  <div class="topbar">
+    <div class="brand"><div class="logo"><div></div></div><div><div class="n">AZIMUTH</div><div class="t">JEZERO · EM ROTA</div></div></div>
+    <div class="crumbs"><div class="crumb">01 PLANEJAR</div><div class="crumb on">02 CAMINHAR</div><div class="crumb">03 RESGATE</div></div>
+    <div class="topright"><div class="coord"><div class="a">18.4489° N · 77.4402° E</div><div class="label" style="margin-top:4px">ROTA SEGURA · 29%</div></div><div class="rescue">⟲ RESGATE</div></div>
+  </div>
+
+  <!-- ahead -->
+  <div class="hud" style="left:24px;top:112px;width:340px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <h3>PELA FRENTE</h3>
+    <div style="display:flex;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid #1A1A1A"><div class="mono" style="font-size:22px;color:var(--accent);width:70px">350 m</div><div style="font-size:13px">Vire a noroeste, siga a trilha do Perseverance</div></div>
+    <div style="display:flex;gap:14px;align-items:center;padding:10px 0;border-bottom:1px solid #1A1A1A"><div class="mono" style="font-size:22px;width:70px">1.6 km</div><div style="font-size:13px">Ponto sem retorno · decida aqui</div></div>
+    <div style="display:flex;gap:14px;align-items:center;padding:10px 0"><div class="mono" style="font-size:22px;width:70px">4.4 km</div><div style="font-size:13px">Frente do delta · coleta de amostras</div></div>
+    <div style="margin-top:12px" class="alertbox"><div class="ic">!</div><div><div class="t">CANAL À ESQUERDA</div><div class="d">Borda instável a 150 m.</div><div class="act">→ Mantenha a trilha marcada.</div></div></div>
+  </div>
+
+  <!-- rover photo -->
+  <div class="hud" style="left:1016px;top:112px;width:400px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <h3>VISTA DO ROVER · PRÓXIMO TRECHO</h3>
+    <div class="photo" style="height:230px"><div class="tag-sample">FOTO REAL · NASA/JPL-CALTECH</div><div class="cap">PERSEVERANCE · NAVCAM · SOL 419 · 120 m À FRENTE</div></div>
+    <div style="display:flex;gap:8px;margin-top:10px"><div class="photo" style="flex:1;height:64px"></div><div class="photo" style="flex:1;height:64px;filter:brightness(0.8)"></div><div class="photo" style="flex:1;height:64px;filter:brightness(1.1)"></div></div>
+    <div class="kv" style="margin-top:10px">Temp. agora <span class="src">THEMIS DIA</span><b>−21 °C</b></div>
+    <div class="kv" style="border-bottom:none">Inclinação à frente <span class="src">MOLA</span><b>6°</b></div>
+  </div>
+
+  <div class="chat" style="left:380px;top:712px;width:620px"><div class="dot"></div><div class="who">AZIMUTH</div><div class="ph">"o que tem à frente?" · "mostra a foto"</div><div class="ib">🎙</div><div class="ib f">↑</div></div>
+
+  <div class="suit">
+    <div class="g"><div class="top"><span class="label">OXIGÊNIO</span><span class="v">63%</span></div><div class="bar"><div class="f" style="width:63%"></div></div></div>
+    <div class="g"><div class="top"><span class="label">BATERIA</span><span class="v">58%</span></div><div class="bar"><div class="f" style="width:58%"></div></div></div>
+    <div class="g"><div class="top"><span class="label">TEMP. TRAJE</span><span class="v">+18°</span></div><div class="bar"><div class="f" style="width:70%"></div></div></div>
+    <div class="vsep"></div>
+    <div><div class="label">ATÉ O ABRIGO</div><div class="mono" style="font-size:22px;margin-top:6px">1.8 km</div></div>
+    <div><div class="label">ATÉ O PONTO SEM RETORNO</div><div class="mono" style="font-size:22px;margin-top:6px;color:var(--accent)">1.6 km · 32 min</div></div>
+    <div style="flex:1"></div>
+    <div class="sample">DADOS DE EXEMPLO</div>
+  </div>
+</div>
+
+<!-- ============ TELA 4 · RESGATE ============ -->
+<div class="screen rs" id="tela-4-resgate">
+  <div class="map">
+    <img src="%%CTX%%" style="left:76px;top:-166px;width:1530px;height:1449px">
+    <div class="shade" style="background:rgba(40,8,2,0.55)"></div>
+    <div class="grid-ov"></div>
+    <svg width="1440" height="900" viewBox="0 0 1440 900">
+      <polyline points="758,604 788,636 832,648 872,640 900,620" fill="none" stroke="#E35D3F" stroke-width="5" stroke-linejoin="round"/>
+      <polyline points="758,604 738,570 716,532 700,496" fill="none" stroke="#EDEDED" stroke-width="2" stroke-dasharray="4 6" opacity="0.5"/>
+      <rect x="745" y="591" width="26" height="26" transform="rotate(45 758 604)" fill="#E35D3F" stroke="#050505" stroke-width="3"/>
+      <circle cx="758" cy="604" r="40" fill="none" stroke="#E35D3F" stroke-width="1.5" stroke-dasharray="4 6"/>
+      <rect x="888" y="608" width="24" height="24" transform="rotate(45 900 620)" fill="#EDEDED"/>
+      <circle cx="900" cy="620" r="34" fill="none" stroke="#EDEDED" stroke-width="1.5"/>
+      <circle cx="716" cy="532" r="9" fill="#050505" stroke="#E35D3F" stroke-width="2"/>
+      <polyline points="960,700 930,660 905,632" fill="none" stroke="#EDEDED" stroke-width="2" stroke-dasharray="3 5"/>
+      <rect x="950" y="690" width="22" height="22" fill="#050505" stroke="#EDEDED" stroke-width="2"/>
+    </svg>
+    <div class="mlabel r" style="left:600px;top:620px">VOCÊ</div>
+    <div class="mlabel" style="left:940px;top:580px">ABRIGO · BASE</div>
+    <div class="mlabel r" style="left:560px;top:516px">PONTO SEM RETORNO (PASSOU NÃO)</div>
+    <div class="mlabel" style="left:986px;top:694px">ROBÔ DE RESGATE · 6 min</div>
+  </div>
+
+  <div class="topbar" style="background:linear-gradient(180deg, rgba(26,11,8,0.97), rgba(26,11,8,0.75))">
+    <div class="brand"><div class="logo" style="border-color:var(--alert)"><div style="background:var(--alert)"></div></div><div><div class="n" style="color:var(--alert)">MODO RESGATE</div><div class="t">ATIVADO HÁ 00:42</div></div></div>
+    <div class="crumbs"><div class="crumb">01 PLANEJAR</div><div class="crumb">02 CAMINHAR</div><div class="crumb on" style="background:var(--alert);border-color:var(--alert)">03 RESGATE</div></div>
+    <div class="topright"><div style="height:64px;padding:0 28px;border:1px solid var(--line-strong);display:flex;align-items:center;font-family:var(--font-display);font-size:13px;letter-spacing:3px">SAIR DO RESGATE</div></div>
+  </div>
+
+  <div class="hud" style="left:24px;top:112px;width:400px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <div class="label" style="color:var(--alert)">ROTA DE VOLTA</div>
+    <div style="font-family:var(--font-display);font-size:30px;letter-spacing:4px;margin-top:10px">1.4 KM</div>
+    <div class="mono" style="font-size:14px;color:var(--text-dim);margin-top:6px">≈ 28 min até o abrigo · rumo 74° NE</div>
+    <div class="kv" style="margin-top:14px">O₂ necessário (+30% margem)<b>14%</b></div>
+    <div class="kv">O₂ disponível<b class="a">63%</b></div>
+    <div class="kv" style="border-bottom:none">Ponto sem retorno<b>não ultrapassado</b></div>
+    <div style="margin-top:14px;height:64px;background:var(--alert);color:#0A0A0A;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:14px;letter-spacing:4px">INICIAR VOLTA</div>
+  </div>
+
+  <div class="hud" style="left:1036px;top:112px;width:380px">
+    <div class="c tl"></div><div class="c tr"></div><div class="c bl"></div><div class="c br"></div>
+    <h3>APOIO · ROBÔS</h3>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #2A1410"><div><div style="font-size:13px;font-weight:600">Transporte de resgate</div><div class="label" style="margin-top:3px">EM ROTA</div></div><div class="mono" style="font-size:20px;color:var(--alert)">6 min</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #2A1410"><div><div style="font-size:13px;font-weight:600">Farol · abrigo</div><div class="label" style="margin-top:3px">ATIVO</div></div><div class="mono" style="font-size:13px">sinal ok</div></div>
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0"><div><div style="font-size:13px;font-weight:600">Relé de comunicação</div><div class="label" style="margin-top:3px">PARADO</div></div><div class="mono" style="font-size:13px;color:var(--text-dim)">—</div></div>
+    <div class="label" style="margin-top:10px;color:var(--text-faint)">CONCEITO · ANIMAÇÃO NO DEMO</div>
+  </div>
+
+  <div class="reply" style="left:440px;top:112px;width:440px;border-top-color:var(--alert)">
+    <div class="who" style="color:var(--alert)">AZIMUTH</div>
+    <div class="txt">Você tem oxigênio para voltar com folga. O abrigo fica a 1,4 km. Posso chamar o transporte de resgate? Ele chega em 6 minutos.</div>
+    <div class="acts"><div class="mini f" style="background:var(--alert);border-color:var(--alert)">CHAMAR ROBÔ</div><div class="mini" style="border-color:var(--alert);color:var(--alert)">SÓ A ROTA</div></div>
+  </div>
+  <div class="chat" style="left:440px;top:712px;width:600px;border-color:var(--alert)"><div class="dot" style="background:var(--alert)"></div><div class="who" style="color:var(--alert)">AZIMUTH</div><div class="ph">"quanto tempo até a base?"</div><div class="ib">🎙</div><div class="ib f" style="background:var(--alert);border-color:var(--alert)">↑</div></div>
+
+  <div class="suit" style="border-top-color:var(--alert)">
+    <div class="g"><div class="top"><span class="label">OXIGÊNIO</span><span class="v">63%</span></div><div class="bar"><div class="f" style="width:63%"></div></div></div>
+    <div class="g"><div class="top"><span class="label">BATERIA</span><span class="v r">21%</span></div><div class="bar"><div class="f r" style="width:21%"></div></div></div>
+    <div class="g"><div class="top"><span class="label">TEMP. TRAJE</span><span class="v">+16°</span></div><div class="bar"><div class="f" style="width:66%"></div></div></div>
+    <div class="vsep"></div>
+    <div><div class="label">ATÉ O ABRIGO</div><div class="mono" style="font-size:22px;margin-top:6px;color:var(--alert)">1.4 km</div></div>
+    <div><div class="label">CHEGADA ESTIMADA</div><div class="mono" style="font-size:22px;margin-top:6px">28 min</div></div>
+    <div style="flex:1"></div>
+    <div class="sample">DADOS DE EXEMPLO</div>
+  </div>
+</div>
+
+</body>
+</html>

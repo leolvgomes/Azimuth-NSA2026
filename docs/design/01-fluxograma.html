@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Azimuth — Fluxograma</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #050505; color: #EDEDED; font-family: 'Montserrat', sans-serif; width: 2200px; }
+  .board { padding: 80px; display: flex; flex-direction: column; gap: 96px; }
+  .eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 14px; letter-spacing: 3px; color: #D4FF00; text-transform: uppercase; }
+  h1 { font-family: 'Michroma', sans-serif; font-size: 56px; letter-spacing: 12px; font-weight: 400; margin-top: 12px; }
+  h2 { font-family: 'Michroma', sans-serif; font-size: 26px; letter-spacing: 6px; font-weight: 400; }
+  .sub { font-size: 18px; color: #8A8A8A; margin-top: 12px; max-width: 1200px; line-height: 1.5; }
+  .section { display: flex; flex-direction: column; gap: 32px; border-top: 1px solid #2A2A2A; padding-top: 40px; }
+  .row { display: flex; align-items: stretch; gap: 0; }
+  .node { width: 220px; border: 1px solid #3A3A3A; background: #0E0E0E; padding: 20px; display: flex; flex-direction: column; gap: 10px; position: relative; }
+  .node .num { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #D4FF00; letter-spacing: 2px; }
+  .node .t { font-family: 'Michroma', sans-serif; font-size: 15px; letter-spacing: 2px; text-transform: uppercase; }
+  .node .d { font-size: 13px; color: #9A9A9A; line-height: 1.5; }
+  .node .lvl { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #6A6A6A; letter-spacing: 1px; }
+  .node.accent { border-color: #D4FF00; }
+  .node.alert { border-color: #E35D3F; background: #1A0B08; }
+  .node.alert .num, .node.alert .t { color: #E35D3F; }
+  .node.decision { border-style: dashed; border-color: #D4FF00; }
+  .arrow { width: 56px; display: flex; align-items: center; justify-content: center; font-family: 'JetBrains Mono', monospace; color: #D4FF00; font-size: 28px; }
+  .arrow.red { color: #E35D3F; }
+  .branch { display: flex; flex-direction: column; gap: 16px; }
+  .note { font-family: 'JetBrains Mono', monospace; font-size: 13px; color: #8A8A8A; letter-spacing: 1px; }
+  .rescue-bar { border: 2px solid #E35D3F; background: #1A0B08; padding: 20px 28px; display: flex; align-items: center; gap: 24px; }
+  .rescue-bar .t { font-family: 'Michroma', sans-serif; color: #E35D3F; font-size: 18px; letter-spacing: 4px; }
+  .rescue-bar .d { color: #E8B3A6; font-size: 15px; }
+  .cols { display: flex; gap: 32px; align-items: stretch; }
+  .col { flex: 1; border: 1px solid #2A2A2A; padding: 28px; display: flex; flex-direction: column; gap: 16px; background: #0A0A0A; }
+  .col h3 { font-family: 'Michroma', sans-serif; font-size: 16px; letter-spacing: 3px; font-weight: 400; }
+  .col .tag { font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #D4FF00; letter-spacing: 2px; }
+  .item { border-left: 2px solid #3A3A3A; padding: 6px 0 6px 14px; font-size: 14px; color: #CFCFCF; line-height: 1.45; }
+  .item b { color: #FFFFFF; font-weight: 600; }
+  .item.hl { border-left-color: #D4FF00; }
+  .item.red { border-left-color: #E35D3F; }
+  .flowline { display: flex; align-items: center; gap: 16px; font-family: 'JetBrains Mono', monospace; font-size: 14px; color: #D4FF00; letter-spacing: 1px; }
+  .timeline { display: flex; gap: 0; }
+  .slot { flex: 1; border: 1px solid #2A2A2A; padding: 24px; display: flex; flex-direction: column; gap: 10px; background: #0A0A0A; }
+  .slot .when { font-family: 'JetBrains Mono', monospace; color: #D4FF00; font-size: 13px; letter-spacing: 2px; }
+  .slot .what { font-family: 'Michroma', sans-serif; font-size: 16px; letter-spacing: 2px; }
+  .slot .d { font-size: 14px; color: #9A9A9A; line-height: 1.5; }
+  .legend { display: flex; gap: 32px; font-family: 'JetBrains Mono', monospace; font-size: 12px; color: #8A8A8A; letter-spacing: 1px; }
+  .sw { display: inline-block; width: 14px; height: 14px; margin-right: 8px; vertical-align: middle; border: 1px solid #3A3A3A; }
+</style>
+</head>
+<body>
+<div class="board">
+
+  <div>
+    <div class="eyebrow">NASA Space Apps 2026 · Interplanetary Survival Guide: Martian Map</div>
+    <h1>AZIMUTH · FLUXOGRAMA</h1>
+    <div class="sub">Know the way home. Três perguntas, nesta ordem: posso ir por aqui? o traje aguenta? como eu volto se algo falhar?</div>
+    <div class="legend" style="margin-top:24px">
+      <span><span class="sw" style="border-color:#D4FF00"></span>Passo principal</span>
+      <span><span class="sw" style="border-color:#D4FF00;border-style:dashed"></span>Decisão do astronauta</span>
+      <span><span class="sw" style="border-color:#E35D3F;background:#1A0B08"></span>Segurança / Resgate</span>
+      <span>N1 / N2 / N3 = nível de prioridade do briefing</span>
+    </div>
+  </div>
+
+  <!-- A. JORNADA DO ASTRONAUTA -->
+  <div class="section">
+    <div class="eyebrow">A · Jornada do astronauta</div>
+    <h2>DO PLANETA ATÉ A VOLTA PARA CASA</h2>
+
+    <div class="row">
+      <div class="node accent"><div class="num">00</div><div class="t">Abertura 3D</div><div class="d">Marte de perto com "VOCÊ ESTÁ AQUI" → recua para a esfera → gira até Jezero → desce até o mapa.</div><div class="lvl">THREE.JS · N3</div></div>
+      <div class="arrow">→</div>
+      <div class="node accent"><div class="num">01</div><div class="t">Mapa Jezero</div><div class="d">Navegável como Google Maps: arrastar, zoom, camadas NASA liga/desliga, marcadores clicáveis.</div><div class="lvl">LEAFLET · N1</div></div>
+      <div class="arrow">→</div>
+      <div class="branch">
+        <div class="node decision"><div class="num">02 · A</div><div class="t">Desenhar rota</div><div class="d">Toca no mapa ponto a ponto. Cada ponto guarda coordenada e distância.</div><div class="lvl">N1</div></div>
+        <div class="note" style="text-align:center">— ou —</div>
+        <div class="node decision"><div class="num">02 · B</div><div class="t">Pedir à Azimuth</div><div class="d">"Me leve até o delta." A IA chama a função de rota e desenha no mapa.</div><div class="lvl">GEMINI · N2</div></div>
+      </div>
+      <div class="arrow">→</div>
+      <div class="node accent"><div class="num">03</div><div class="t">Dossiê da rota</div><div class="d">Lê cada camada ao longo da linha: relevo/inclinação (MOLA), temperatura (THEMIS dia/noite), minerais (CRISM), geologia (USGS), perigos, radiação (RAD).</div><div class="lvl">N1</div></div>
+      <div class="arrow">→</div>
+      <div class="node accent"><div class="num">04</div><div class="t">Cruzar c/ traje</div><div class="d">Temperatura da rota × faixa do traje. O₂ e bateria × distância. Sliders = DADOS DE EXEMPLO.</div><div class="lvl">N1</div></div>
+      <div class="arrow red">→</div>
+      <div class="node alert"><div class="num">05</div><div class="t">Alertas</div><div class="d">No trecho exato, em vermelho-salmão, sempre visível. Cada alerta diz o que fazer.</div><div class="lvl">N2</div></div>
+      <div class="arrow">→</div>
+      <div class="node decision"><div class="num">06</div><div class="t">Opções de rota</div><div class="d">Mais segura · mais rápida · equilibrada (A*). Distância, tempo, O₂ que sobra, nº de alertas. Astronauta escolhe.</div><div class="lvl">N2</div></div>
+      <div class="arrow">→</div>
+      <div class="node accent"><div class="num">07</div><div class="t">Caminhada</div><div class="d">Posição, o que vem pela frente, fotos reais dos rovers perto dali, trilha do Perseverance.</div><div class="lvl">N2 · 3D = N3</div></div>
+    </div>
+
+    <div class="rescue-bar">
+      <div class="t">08 · RESGATE</div>
+      <div class="d">Um toque, de qualquer tela (01→07): rota de volta · ponto sem retorno · abrigo mais próximo (base no pouso do Perseverance) · robô de resgate a caminho (conceito). Tema vira vermelho-salmão.</div>
+    </div>
+
+    <div class="flowline">AZIMUTH (IA) PRESENTE DO 01 AO 08 → barra de conversa fixa embaixo · voz ou texto · respostas em cartões curtos sobre o mapa · sugere, o astronauta confirma</div>
+  </div>
+
+  <!-- B. ARQUITETURA -->
+  <div class="section">
+    <div class="eyebrow">B · Arquitetura do site</div>
+    <h2>COMO AS PEÇAS CONVERSAM</h2>
+    <div class="cols">
+      <div class="col">
+        <div class="tag">DADOS NASA (ESTÁTICOS, OFFLINE)</div>
+        <h3>/public/data</h3>
+        <div class="item hl"><b>CTX Jezero</b> · TIF 5322×5040 → PNG/tiles · base óptica</div>
+        <div class="item"><b>MOLA</b> relevo + inclinação · tiles Mars Trek + grade pré-calculada</div>
+        <div class="item"><b>THEMIS</b> IR dia/noite · tiles + grade de temperatura</div>
+        <div class="item"><b>CRISM</b> minerais (fallback: geologia USGS)</div>
+        <div class="item"><b>Formas de relevo</b> · canais, brecha, delta (GeoJSON)</div>
+        <div class="item"><b>Perseverance</b> · trilha + 10–15 fotos (NASA/JPL-Caltech)</div>
+        <div class="item"><b>MEDA</b> atmosfera · <b>RAD</b> radiação (estimativa)</div>
+      </div>
+      <div class="col">
+        <div class="tag">LÓGICA PURA (TYPESCRIPT, TESTADA)</div>
+        <h3>/src/core</h3>
+        <div class="item hl"><b>costMap</b> · custo por célula = inclinação + perigo + frio − trilha do rover</div>
+        <div class="item hl"><b>A*</b> · 3 perfis de peso → segura / rápida / equilibrada</div>
+        <div class="item"><b>dossier</b> · amostra as camadas ao longo da rota</div>
+        <div class="item"><b>suit</b> · consumo O₂/h, bateria, faixa térmica (config)</div>
+        <div class="item red"><b>alerts</b> · trecho + o que fazer</div>
+        <div class="item red"><b>rescue</b> · ponto sem retorno, rota de volta, abrigo</div>
+      </div>
+      <div class="col">
+        <div class="tag">INTERFACE (NEXT.JS + REACT)</div>
+        <h3>/src/app · /components</h3>
+        <div class="item hl"><b>Globe3D</b> · Three.js / react-three-fiber</div>
+        <div class="item hl"><b>MapView</b> · Leaflet: camadas, rota, marcadores</div>
+        <div class="item"><b>RoutePanel</b> · dossiê + comparador de opções</div>
+        <div class="item"><b>SuitStrip</b> · sliders + barra de O₂/bateria</div>
+        <div class="item"><b>RoverPhoto</b> · foto mais próxima do ponto</div>
+        <div class="item red"><b>RescueButton</b> · sempre visível</div>
+        <div class="item"><b>AzimuthBar</b> · chat + microfone</div>
+      </div>
+      <div class="col">
+        <div class="tag">IA (SERVIDOR · VERCEL)</div>
+        <h3>/api/azimuth</h3>
+        <div class="item hl"><b>Gemini</b> + function calling · chave em .env.local</div>
+        <div class="item">tools: planRoute · compareRoutes · oxygenMargin · startRescue · nearestPhoto · callRover</div>
+        <div class="item">A IA <b>nunca calcula</b>: chama /src/core e explica o resultado</div>
+        <div class="item">Sem dado → diz que não sabe</div>
+        <div class="item red"><b>Plano B</b> · 5 respostas pré-escritas (demo sem rede)</div>
+      </div>
+    </div>
+    <div class="flowline">DADOS → CORE (cálculo) → INTERFACE (mostra) ⇄ IA (pede cálculo ao CORE, explica para o astronauta)</div>
+  </div>
+
+  <!-- C. EXECUÇÃO -->
+  <div class="section">
+    <div class="eyebrow">C · Execução até domingo 15/11</div>
+    <h2>QUEM FAZ O QUÊ, E QUANDO</h2>
+    <div class="timeline">
+      <div class="slot"><div class="when">SÁB · NOITE</div><div class="what">FIGMA + BASE</div><div class="d">Fluxograma, design system, 4 telas. Esqueleto Next, TIF convertido, mapa Jezero com rota e distância.</div></div>
+      <div class="slot"><div class="when">SÁB → DOM · MADRUGADA</div><div class="what">NÍVEL 1</div><div class="d">3 camadas reais (MOLA, THEMIS, CRISM), painel de dados, faixa do traje com sliders.</div></div>
+      <div class="slot"><div class="when">DOM · MANHÃ</div><div class="what">NÍVEL 2</div><div class="d">Resgate primeiro → alertas → opções A* → trilha Perseverance → fotos → Azimuth (Gemini).</div></div>
+      <div class="slot"><div class="when">DOM · INÍCIO DA TARDE</div><div class="what">NÍVEL 3 (SE DER)</div><div class="d">Abertura 3D de Marte, ícones dos robôs, caminhada 3D.</div></div>
+      <div class="slot" style="border-color:#E35D3F"><div class="when" style="color:#E35D3F">DOM · TARDE</div><div class="what">CONGELAR</div><div class="d">Deploy Vercel, gravar tela, vídeo 30 s (Clara), submeter com 2 h de folga.</div></div>
+    </div>
+    <div class="cols">
+      <div class="col">
+        <div class="tag">ORQUESTRADOR</div>
+        <h3>Claude (sessão principal)</h3>
+        <div class="item">Divide tarefas por nível, dispara agentes em paralelo, integra, revisa. Nada é commitado antes do Leonardo revisar.</div>
+      </div>
+      <div class="col"><div class="tag">AGENTE</div><h3>map-data</h3><div class="item">TIF → PNG, tiles Mars Trek, grades MOLA/THEMIS, GeoJSON, fotos.</div></div>
+      <div class="col"><div class="tag">AGENTE</div><h3>route-engine</h3><div class="item">A*, opções, O₂, ponto sem retorno, alertas + testes.</div></div>
+      <div class="col"><div class="tag">AGENTE</div><h3>ui-builder</h3><div class="item">Telas a partir deste Figma, tokens no config.</div></div>
+      <div class="col"><div class="tag">AGENTE</div><h3>globe-3d</h3><div class="item">Abertura de Marte em Three.js.</div></div>
+      <div class="col"><div class="tag">AGENTE</div><h3>ai-assistant</h3><div class="item">Rota /api/azimuth, tools, prompt, plano B.</div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
