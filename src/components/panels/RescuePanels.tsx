@@ -29,7 +29,7 @@ export function ReturnPanel() {
   const pnrText = plan.pointOfNoReturn == null ? '—' : plan.passedPointOfNoReturn ? t('passed') : t('notPassed');
 
   return (
-    <Hud style={{ width: 400 }}>
+    <Hud style={{ width: 400 }} tour="rescue-panel">
       <div className="label" style={{ color: 'var(--alert)' }}>
         {t('returnRoute')}
       </div>
@@ -115,7 +115,7 @@ export function RobotsPanel() {
   };
 
   return (
-    <Hud title={t('robots')} style={{ width: 380 }}>
+    <Hud title={t('robots')} style={{ width: 380 }} tour="robots">
       {ROBOTS.map((r, i) => {
         const active = robot?.role === r.role;
         const left = active ? Math.max(0, robot!.etaMin - (now - robot!.startedAt) / 2000) : null;

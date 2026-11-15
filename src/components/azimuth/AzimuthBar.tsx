@@ -50,7 +50,17 @@ export function AzimuthBar() {
     setListening(!!rec.current);
   };
 
+  const chips = t(mode === 'walk' ? 'chipsWalk' : mode === 'rescue' ? 'chipsRescue' : 'chipsPlan').split('|');
+
   return (
+    <>
+    <div className="chips" role="group" aria-label={t('quickAsk')}>
+      {chips.map((c) => (
+        <button key={c} type="button" className={`chip ${mode === 'rescue' ? 'r' : ''}`} disabled={loading} onClick={() => send(c)}>
+          {c}
+        </button>
+      ))}
+    </div>
     <form
       className="chat"
       onSubmit={(e) => {
@@ -87,5 +97,6 @@ export function AzimuthBar() {
         ↑
       </button>
     </form>
+    </>
   );
 }

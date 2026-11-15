@@ -195,7 +195,7 @@ export function RoutePanel() {
   const destName = active ? nameNear(active, mapData?.landmarks ?? [], lang) : null;
 
   return (
-    <Hud style={{ width: 380 }}>
+    <Hud style={{ width: 380 }} tour="route-panel">
       {!active ? (
         <>
           <h3 className="h3">{t('planRoute')}</h3>
@@ -209,13 +209,13 @@ export function RoutePanel() {
           <h3 className="h3">
             {routes.length > 1 ? t('routeOptions') : t('route')} · {t('base')} → {upper(destName ?? t('destination'))}
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2" data-tour="route-options">
             {routes.map((r) => (
               <OptionCard key={r.id} route={r} selected={r.id === activeId} alerts={routeAlerts[r.id]?.length ?? 0} onSelect={() => selectRoute(r.id)} />
             ))}
           </div>
           <div className="flex gap-2" style={{ marginTop: 12 }}>
-            <button type="button" className="btn primary flex-1" onClick={startWalk}>
+            <button type="button" className="btn primary flex-1" data-tour="walk-btn" onClick={startWalk}>
               {t('walk')}
             </button>
             <button type="button" className="btn" style={{ padding: '0 16px', fontSize: 11 }} onClick={clearRoutes}>

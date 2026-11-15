@@ -29,7 +29,7 @@ function snapshot(): AppSnapshot {
 
 async function viaServer(req: AzimuthRequest): Promise<AzimuthResponse | null> {
   const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 20000);
+  const t = setTimeout(() => ctrl.abort(), 16000);
   try {
     const r = await fetch('/api/azimuth', {
       method: 'POST',

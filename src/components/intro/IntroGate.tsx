@@ -5,6 +5,7 @@ import { IntroFallback } from './IntroFallback';
 import { ErrorBoundary } from '@/components/ui/ErrorBoundary';
 import { LangSwitch } from '@/components/ui/LangSwitch';
 import { useT } from '@/lib/useT';
+import { GuideButtons } from '@/components/guide/GuideButtons';
 
 /**
  * Abertura: usa o globo 3D (que tem o próprio botão PULAR) de @/components/globe/MarsIntro (agente globe-3d) quando existir;
@@ -48,8 +49,13 @@ export function IntroGate({ onEnter, onRescue }: { onEnter: () => void; onRescue
         </button>
       ) : null}
       {Globe ? (
-        <div style={{ position: 'fixed', top: 20, right: 24, zIndex: 2100 }}>
+        <div className="flex items-center gap-3" style={{ position: 'fixed', top: 20, right: 24, zIndex: 2100 }}>
+          <GuideButtons />
           <LangSwitch />
+        </div>
+      ) : checked ? (
+        <div style={{ position: 'fixed', top: 100, right: 24, zIndex: 2100 }}>
+          <GuideButtons />
         </div>
       ) : null}
     </>

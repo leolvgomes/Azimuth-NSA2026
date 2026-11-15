@@ -7,6 +7,7 @@ import { useT } from '@/lib/useT';
 import type { I18nKey } from '@/lib/i18n';
 import { Logo } from '@/components/ui/Logo';
 import { LangSwitch } from '@/components/ui/LangSwitch';
+import { HelpButton } from '@/components/guide/GuideButtons';
 
 const TABS: { mode: Exclude<Mode, 'intro'>; key: I18nKey }[] = [
   { mode: 'plan', key: 'tabPlan' },
@@ -42,9 +43,9 @@ export function TopBar() {
 
   return (
     <header className="topbar">
-      <div className="flex items-center gap-4 min-w-0">
+      <div className="tb-brand flex items-center gap-4 min-w-0">
         <Logo alert={rescue} />
-        <div className="min-w-0">
+        <div className="tb-name min-w-0">
           <div className="f-display truncate" style={{ fontSize: 20, letterSpacing: 8, color: rescue ? 'var(--alert)' : undefined }}>
             {rescue ? t('rescueMode') : brand.name}
           </div>
@@ -62,7 +63,7 @@ export function TopBar() {
         </div>
       </div>
 
-      <nav className="flex" aria-label={t('steps')}>
+      <nav className="tb-tabs flex" aria-label={t('steps')}>
         {TABS.map((tab) => (
           <button
             key={tab.mode}
@@ -89,13 +90,14 @@ export function TopBar() {
             </div>
           </div>
         ) : null}
-        <LangSwitch />
+        <HelpButton />
+        <LangSwitch className="tb-lang" />
         {rescue ? (
           <button type="button" className="btn" onClick={exitRescue}>
             {t('exitRescue')}
           </button>
         ) : (
-          <button type="button" className="btn rescue" onClick={enterRescue} aria-label={t('rescueAria')}>
+          <button type="button" className="btn rescue" data-tour="rescue-btn" onClick={enterRescue} aria-label={t('rescueAria')}>
             {t('rescue')}
           </button>
         )}

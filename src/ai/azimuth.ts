@@ -15,7 +15,13 @@ export const DEFAULT_MODEL = 'gemini-3.5-flash';
 /** Reserva: se o modelo escolhido estiver sobrecarregado (503), aposentado (404) ou sem cota (429), tenta o próximo. */
 const FALLBACK_MODELS = ['gemini-3.5-flash', 'gemini-3.1-flash-lite', 'gemini-2.5-flash-lite'];
 const MAX_ROUNDS = 4;
-const TIMEOUT_MS = 18_000;
+/** Tempo máximo de uma tentativa no Gemini; depois disso o plano B responde (o cliente desiste em 16 s). */
+const TIMEOUT_MS = 12_000;
+/** Só tenta o modelo reserva se ainda sobrar tempo: melhor o plano B rápido do que esperar 30 s. */
+const RETRY_BUDGET_MS = 6_000;
+/** Opções visíveis que o servidor aceita do cliente (cada rota traz todos os pontos). */
+const MAX_ROUTES = 4;
+const MAX_ROUTE_POINTS = 2_000;
 
 export function modelChain(env: Record<string, string | undefined> = process.env): string[] {
   return [...new Set([(env.GEMINI_MODEL ?? '').trim() || DEFAULT_MODEL, ...FALLBACK_MODELS])];
@@ -55,7 +61,11 @@ export function parseRequest(body: unknown): AzimuthRequest | string {
     position: { lat: pos.lat, lng: pos.lng },
     mode: s.mode === 'walk' || s.mode === 'rescue' ? s.mode : 'plan',
     activeRouteId: typeof s.activeRouteId === 'string' ? s.activeRouteId : null,
-    routes: Array.isArray(s.routes) ? (s.routes as AppSnapshot['routes']) : [],
+    routes: Array.isArray(s.routes)
+      ? (s.routes as AppSnapshot['routes'])
+          .filter((r) => isObj(r) && Array.isArray(r.points) && r.points.length <= MAX_ROUTE_POINTS && Array.isArray(r.alerts))
+          .slice(0, MAX_ROUTES)
+      : [],
     progressIdx: isNum(s.progressIdx) ? Math.max(0, Math.floor(s.progressIdx)) : 0,
     lang: s.lang === 'pt' ? 'pt' : DEFAULT_LANG,
     ...(isNum(s.missionElapsedMin) ? { missionElapsedMin: Math.max(0, s.missionElapsedMin) } : {}),
@@ -68,13 +78,16 @@ export function shouldUseOffline(env: Record<string, string | undefined> = proce
   return env.AZIMUTH_OFFLINE === 'true' || !(env.GEMINI_API_KEY ?? '').trim();
 }
 
-export async function answer(body: unknown): Promise<AzimuthResponse | { error: string }> {
+export async function answer(body: unknown, opts: { forceOffline?: string } = {}): Promise<AzimuthResponse | { error: string }> {
   const req = parseRequest(body);
   if (typeof req === 'string') return { error: req };
   const data = await loadMapData();
+  if (opts.forceOffline) return { ...(await offlineAnswer(req, data)), error: opts.forceOffline };
   if (shouldUseOffline()) return offlineAnswer(req, data);
   let lastError: unknown = null;
+  const started = Date.now();
   for (const model of modelChain()) {
+    if (lastError && Date.now() - started > RETRY_BUDGET_MS) break;
     try {
       const res = await withTimeout(geminiAnswer(req, data, process.env.GEMINI_API_KEY!.trim(), model), TIMEOUT_MS + 1000);
       // Rede de segurança: pedido de rover sem call_rover → o modelo inventou o ETA; usa o plano B (ETA do core).

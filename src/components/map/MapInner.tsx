@@ -105,7 +105,17 @@ function RasterLayers() {
   useEffect(() => {
     let alive = true;
     loadLayers().then((r) => alive && setLayers(r.layers));
-    firstAvailable(['/data/ctx/jezero-ctx.webp', '/data/ctx/jezero-ctx-preview.webp']).then((u) => alive && setCtxUrl(u));
+    // Carregamento progressivo: a prévia (≈260 KB) aparece logo; a versão cheia (≈2,7 MB) entra quando terminar de baixar.
+    const FULL = '/data/ctx/jezero-ctx.webp';
+    const PREVIEW = '/data/ctx/jezero-ctx-preview.webp';
+    firstAvailable([PREVIEW, FULL]).then((u) => {
+      if (!alive) return;
+      setCtxUrl((cur) => cur ?? u);
+      if (u !== PREVIEW) return;
+      const img = new Image();
+      img.onload = () => alive && setCtxUrl(FULL);
+      img.src = FULL;
+    });
     return () => {
       alive = false;
     };
@@ -133,7 +143,7 @@ function RasterLayers() {
         />
       ) : null}
       <Pane name="ctx" style={{ zIndex: 250 }}>
-        {toggles.optical && ctxUrl ? <ImageOverlay url={ctxUrl} bounds={JEZERO_LEAFLET_BOUNDS} attribution="NASA/JPL-Caltech/MSSS · MRO CTX · USGS" /> : null}
+        {toggles.optical && ctxUrl ? <ImageOverlay key={ctxUrl} url={ctxUrl} bounds={JEZERO_LEAFLET_BOUNDS} attribution="NASA/JPL-Caltech/MSSS · MRO CTX · USGS" /> : null}
       </Pane>
       <Pane name="data" style={{ zIndex: 300 }}>
         {overlays.map((l) =>
